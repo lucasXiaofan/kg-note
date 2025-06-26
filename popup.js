@@ -13,16 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
           noteContent += `**Summary:**\n${response.summary}\n\n`;
         }
         noteArea.value = noteContent;
-        // Multiple attempts to ensure focus works
-        setTimeout(() => {
-          window.focus();
-          noteArea.focus();
-          noteArea.select();
-        }, 50);
-        setTimeout(() => {
-          noteArea.focus();
-          noteArea.setSelectionRange(noteArea.value.length, noteArea.value.length);
-        }, 150);
       }
     });
   });
@@ -56,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: noteText
       }, function(response) {
         if (response && response.status === 'success') {
-          noteArea.value = '';
+          window.close();
         }
       });
     }

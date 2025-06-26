@@ -35,16 +35,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       chrome.downloads.download({
         url: url,
         filename: 'knowledge-weaver-notes.md',
-        saveAs: false
-      }, (downloadId) => {
-        if (chrome.runtime.lastError) {
-          console.error('Download error:', chrome.runtime.lastError);
-          sendResponse({ status: 'error', message: chrome.runtime.lastError.message });
-        } else {
-          console.log('Download started:', downloadId);
-          sendResponse({ status: 'success', downloadId: downloadId });
-        }
-        URL.revokeObjectURL(url);
+        saveAs: true
+      });
+      sendResponse({ status: 'success' });
+    });
+    return true;
+  } else if (request.action === 'deleteNote') {
+    chrome.storage.local.get({ notes: [] }, function(result) {
+      let notes = result.notes;
+      notes = notes.filter(note => note.id !== request.id);
+      chrome.storage.local.set({ notes: notes }, function() {
+        sendResponse({ status: 'success' });
+      });
+    });
+    return true;
+  } else if (request.action === 'editNote') {
+    chrome.storage.local.get({ notes: [] }, function(result) {
+      let notes = result.notes;
+      const noteIndex = notes.findIndex(note => note.id === request.id);
+      if (noteIndex !== -1) {
+        notes[noteIndex].content = request.content;
+      }
+      chrome.storage.local.set({ notes: notes }, function() {
+        sendResponse({ status: 'success' });
       });
     });
     return true;
@@ -53,6 +66,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.commands.onCommand.addListener((command) => {
   if (command === '_execute_action') {
-    chrome.action.openPopup();
+    chrome.action.openPopup(() => {
+      chrome.runtime.sendMessage({ action: 'focusPopup' });
+    });
   }
 });

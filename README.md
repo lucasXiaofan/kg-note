@@ -12,11 +12,21 @@ This initial phase focuses on building the core features of the extension, allow
 *   **Hotkey Access:** Use `Ctrl+Shift+Y` to open the note-taking popup.
 *   **Contextual Notes:** The title, URL, and summary (if available) of the current webpage are automatically added to your note.
 *   **Auto-Focus:** The note-taking area is automatically focused when the popup is opened, allowing you to start typing immediately.
-*   **Enter to Save:** Press `Enter` in the note area to quickly save your note.
+*   **Enter to Save & Close:** Press `Enter` in the note area to quickly save your note and close the popup.
 *   **Modern UI:** A sleek, modern interface built with Tailwind CSS featuring a dark theme, smooth animations, and intuitive design.
 *   **Local Storage:** Notes are saved to the extension's local storage.
 *   **View Notes:** You can view all your notes on a dedicated page.
 *   **Export Notes:** You can export all your notes as a single Markdown file.
+
+### Storage Limits
+
+This extension uses `chrome.storage.local` to store your notes. This storage is not unlimited and has the following restrictions:
+
+*   **Total storage:** 5 MB
+*   **Individual item size:** 8 KB
+*   **Number of items:** 512
+
+If you plan to store a large number of notes, you may eventually hit these limits. Future versions of the extension will offer alternative storage options, such as a dedicated database.
 
 ### How to Use
 
@@ -34,7 +44,7 @@ This initial phase focuses on building the core features of the extension, allow
 3.  Press `Ctrl+Shift+Y` or click the extension icon to open the popup.
 4.  The title, URL, and summary of the page will be pre-filled in the note area.
 5.  Add your notes below the title.
-6.  Click "Save Note" or press `Enter` to save the note.
+6.  Click "Save Note" or press `Enter` to save the note and close the popup.
 7.  Click "View Notes" to see all your saved notes.
 8.  Click "Export Notes" to save all your notes to a single Markdown file.
 
