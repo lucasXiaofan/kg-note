@@ -1,0 +1,11 @@
+{
+  "name": "knowledge-weaver",
+  "version": "0.2.0",
+  "description": "A Chrome extension to take notes, categorize them with AI, and build a personal knowledge graph.",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

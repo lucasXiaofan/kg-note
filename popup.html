@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Knowledge Weaver</title>
+  <link rel="stylesheet" type="text/css" href="dist/output.css">
+</head>
+<body class="bg-gray-900 text-gray-100 p-4 w-80">
+  <div class="space-y-4">
+    <h1 class="text-xl font-bold text-center text-blue-400">Knowledge Weaver</h1>
+    <textarea 
+      id="note-area" 
+      placeholder="Your notes here..." 
+      class="w-full h-44 p-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+    ></textarea>
+    <div class="space-y-2">
+      <button 
+        id="save-button" 
+        class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        💾 Save Note
+      </button>
+      <div class="grid grid-cols-2 gap-2">
+        <button 
+          id="export-button" 
+          class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          📤 Export
+        </button>
+        <button 
+          id="view-notes-button" 
+          class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          📋 View
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
