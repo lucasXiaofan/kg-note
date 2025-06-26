@@ -29,15 +29,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         fullContent += note.content + '\n\n---\n\n';
       });
 
-      const blob = new Blob([fullContent], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-
-      chrome.downloads.download({
-        url: url,
-        filename: 'knowledge-weaver-notes.md',
-        saveAs: true
-      });
-      sendResponse({ status: 'success' });
+      try {
+        const dataUrl = 'data:text/markdown;charset=utf-8,' + encodeURIComponent(fullContent);
+        
+        chrome.downloads.download({
+          url: dataUrl,
+          filename: 'knowledge-weaver-notes.md',
+          saveAs: true
+        }, (downloadId) => {
+          if (chrome.runtime.lastError) {
+            console.error('Download failed:', chrome.runtime.lastError);
+            sendResponse({ status: 'error', message: chrome.runtime.lastError.message });
+          } else {
+            console.log('Download started with ID:', downloadId);
+            sendResponse({ status: 'success' });
+          }
+        });
+      } catch (e) {
+        console.error('Error during export:', e);
+        sendResponse({ status: 'error', message: e.message });
+      }
     });
     return true;
   } else if (request.action === 'deleteNote') {

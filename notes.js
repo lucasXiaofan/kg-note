@@ -1,10 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   const notesContainer = document.getElementById('notes-container');
-  const editModal = document.getElementById('edit-modal');
-  const edit_textarea = document.getElementById('edit-textarea');
-  const cancelEditButton = document.getElementById('cancel-edit-button');
-  const saveEditButton = document.getElementById('save-edit-button');
-  let currentNoteId = null;
+  const exportNotesButton = document.getElementById('export-notes-button');
 
   function renderNotes() {
     notesContainer.innerHTML = '';
@@ -41,16 +37,26 @@ document.addEventListener('DOMContentLoaded', function() {
         noteActions.className = 'mt-4 flex justify-end space-x-2';
 
         const editButton = document.createElement('button');
-        editButton.className = 'py-1 px-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm';
+        editButton.className = 'py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-bold';
         editButton.textContent = 'Edit';
         editButton.addEventListener('click', () => {
-          currentNoteId = note.id;
-          edit_textarea.value = note.content;
-          editModal.classList.remove('hidden');
+          const width = 800;
+          const height = 600;
+          const left = (screen.width / 2) - (width / 2);
+          const top = (screen.height / 2) - (height / 2);
+
+          chrome.windows.create({
+            url: `edit.html?id=${note.id}`,
+            type: 'popup',
+            width: width,
+            height: height,
+            left: Math.round(left),
+            top: Math.round(top)
+          });
         });
 
         const deleteButton = document.createElement('button');
-        deleteButton.className = 'py-1 px-3 bg-red-600 hover:bg-red-700 rounded-lg text-sm';
+        deleteButton.className = 'py-2 px-4 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold';
         deleteButton.textContent = 'Delete';
         deleteButton.addEventListener('click', () => {
           chrome.runtime.sendMessage({ action: 'deleteNote', id: note.id }, () => {
@@ -69,16 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  cancelEditButton.addEventListener('click', () => {
-    editModal.classList.add('hidden');
-  });
 
-  saveEditButton.addEventListener('click', () => {
-    const newContent = edit_textarea.value;
-    chrome.runtime.sendMessage({ action: 'editNote', id: currentNoteId, content: newContent }, () => {
-      editModal.classList.add('hidden');
-      renderNotes();
-    });
+  exportNotesButton.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'exportNotes' });
   });
 
   renderNotes();

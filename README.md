@@ -16,6 +16,7 @@ This initial phase focuses on building the core features of the extension, allow
 *   **Modern UI:** A sleek, modern interface built with Tailwind CSS featuring a dark theme, smooth animations, and intuitive design.
 *   **Local Storage:** Notes are saved to the extension's local storage.
 *   **View Notes:** You can view all your notes on a dedicated page.
+*   **Edit and Delete Notes:** You can easily edit and delete your notes from the "View Notes" page. Editing is done in a new, centered pop-up window for a better experience.
 *   **Export Notes:** You can export all your notes as a single Markdown file.
 
 ### Storage Limits
