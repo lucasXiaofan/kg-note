@@ -20,7 +20,8 @@
   "permissions": [
     "activeTab",
     "downloads",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "http://localhost:8000/*"
@@ -39,6 +40,12 @@
       "suggested_key": {
         "default": "Ctrl+Shift+Y"
       }
+    },
+    "toggle_overlay": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U"
+      },
+      "description": "Toggle overlay note panel"
     }
   }
 }

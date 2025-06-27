@@ -284,10 +284,21 @@ document.addEventListener('DOMContentLoaded', function() {
           return timeA - timeB; // Oldest first
         });
       }
+      
+      // Group notes by domain for easier relationship visualization
+      const notesByDomain = {};
+      notes.forEach(note => {
+        const domain = note.metadata?.domain || (note.url ? new URL(note.url).hostname : 'unknown');
+        if (!notesByDomain[domain]) {
+          notesByDomain[domain] = [];
+        }
+        notesByDomain[domain].push(note);
+      });
 
       notes.forEach((note, index) => {
         const noteElement = document.createElement('div');
         noteElement.className = 'bg-gray-800 border border-gray-600 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-200';
+        noteElement.setAttribute('data-note-id', note.id);
         
         const noteHeader = document.createElement('div');
         noteHeader.className = 'flex justify-between items-center mb-3';
@@ -302,6 +313,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         noteHeader.appendChild(noteNumber);
         noteHeader.appendChild(noteDate);
+        
+        // Add webpage context metadata section
+        const metadataSection = createMetadataSection(note, notesByDomain);
 
         // Create editable categories
         const noteCategories = createEditableCategories(note);
@@ -346,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
         noteActions.appendChild(deleteButton);
 
         noteElement.appendChild(noteHeader);
+        noteElement.appendChild(metadataSection);
         noteElement.appendChild(noteCategories);
         noteElement.appendChild(noteContent);
         noteElement.appendChild(noteActions);
@@ -419,6 +434,173 @@ document.addEventListener('DOMContentLoaded', function() {
   refreshStorageButton.addEventListener('click', () => {
     calculateStorageUsage();
   });
+
+  // Function to create metadata section showing webpage context and related notes
+  function createMetadataSection(note, notesByDomain) {
+    const metadataContainer = document.createElement('div');
+    metadataContainer.className = 'mb-4 p-3 bg-gray-700/50 rounded-lg border border-gray-600/50';
+    
+    // Webpage context
+    const contextSection = document.createElement('div');
+    contextSection.className = 'mb-2';
+    
+    // Check if this is a YouTube video note
+    const isYouTube = note.relationships?.type === 'youtube_video';
+    
+    const contextLabel = document.createElement('div');
+    contextLabel.className = 'text-xs font-medium mb-1';
+    contextLabel.textContent = isYouTube ? '🎥 YouTube Video Context' : '📄 Webpage Context';
+    contextLabel.classList.add(isYouTube ? 'text-red-300' : 'text-blue-300');
+    
+    const title = note.metadata?.title || 'Unknown Title';
+    const url = note.metadata?.url || note.url || 'Unknown URL';
+    const domain = note.metadata?.domain || (note.url ? new URL(note.url).hostname : 'unknown');
+    
+    const titleElement = document.createElement('div');
+    titleElement.className = 'text-sm font-medium text-gray-200 truncate';
+    titleElement.textContent = title;
+    titleElement.title = title;
+    
+    const urlElement = document.createElement('div');
+    urlElement.className = 'text-xs text-gray-400 truncate hover:text-blue-400 cursor-pointer';
+    
+    // Use timestamped URL for YouTube videos if available
+    const displayUrl = isYouTube && note.relationships?.timestampedUrl ? note.relationships.timestampedUrl : url;
+    const clickUrl = displayUrl;
+    
+    urlElement.textContent = displayUrl;
+    urlElement.title = displayUrl;
+    urlElement.addEventListener('click', () => {
+      chrome.tabs.create({ url: clickUrl });
+    });
+    
+    contextSection.appendChild(contextLabel);
+    contextSection.appendChild(titleElement);
+    contextSection.appendChild(urlElement);
+    
+    // Add YouTube-specific metadata
+    if (isYouTube && note.relationships) {
+      const youtubeInfo = document.createElement('div');
+      youtubeInfo.className = 'mt-2 text-xs text-gray-300 bg-red-900/20 p-2 rounded border border-red-500/30';
+      
+      let youtubeDetails = '';
+      if (note.relationships.channelName) {
+        youtubeDetails += `📺 ${note.relationships.channelName}`;
+      }
+      if (note.relationships.videoTime !== null) {
+        const minutes = Math.floor(note.relationships.videoTime / 60);
+        const seconds = Math.floor(note.relationships.videoTime % 60);
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        if (youtubeDetails) youtubeDetails += ' • ';
+        youtubeDetails += `⏰ ${timeString}`;
+      }
+      
+      youtubeInfo.textContent = youtubeDetails;
+      contextSection.appendChild(youtubeInfo);
+    }
+    
+    // Related notes section with enhanced YouTube relationships
+    const relatedSection = document.createElement('div');
+    const domainNotes = notesByDomain[domain] || [];
+    
+    let exactPageNotes, sameDomainNotes, sameVideoNotes;
+    
+    if (isYouTube && note.relationships?.videoId) {
+      // For YouTube, group by video ID instead of just URL
+      sameVideoNotes = domainNotes.filter(n => 
+        n.relationships?.videoId === note.relationships.videoId && n.id !== note.id
+      );
+      exactPageNotes = sameVideoNotes;
+      sameDomainNotes = domainNotes.filter(n => 
+        n.relationships?.videoId !== note.relationships.videoId && n.id !== note.id
+      );
+    } else {
+      exactPageNotes = domainNotes.filter(n => (n.metadata?.url || n.url) === url && n.id !== note.id);
+      sameDomainNotes = domainNotes.filter(n => (n.metadata?.url || n.url) !== url && n.id !== note.id);
+    }
+    
+    if (exactPageNotes.length > 0 || sameDomainNotes.length > 0) {
+      const relatedLabel = document.createElement('div');
+      relatedLabel.className = 'text-xs font-medium text-yellow-300 mb-1 mt-2';
+      relatedLabel.textContent = '🔗 Related Notes';
+      
+      const relatedInfo = document.createElement('div');
+      relatedInfo.className = 'text-xs text-gray-300 space-y-1';
+      
+      if (exactPageNotes.length > 0) {
+        const exactPageInfo = document.createElement('div');
+        exactPageInfo.className = 'flex items-center space-x-2 cursor-pointer hover:text-blue-400';
+        
+        if (isYouTube) {
+          exactPageInfo.innerHTML = `<span>🎥 ${exactPageNotes.length} note(s) from this video</span>`;
+        } else {
+          exactPageInfo.innerHTML = `<span>📝 ${exactPageNotes.length} note(s) from this page</span>`;
+        }
+        
+        exactPageInfo.addEventListener('click', () => {
+          highlightRelatedNotes(exactPageNotes.map(n => n.id));
+        });
+        relatedInfo.appendChild(exactPageInfo);
+      }
+      
+      if (sameDomainNotes.length > 0) {
+        const domainInfo = document.createElement('div');
+        domainInfo.className = 'flex items-center space-x-2 cursor-pointer hover:text-blue-400';
+        
+        if (isYouTube) {
+          domainInfo.innerHTML = `<span>🌐 ${sameDomainNotes.length} other YouTube video(s)</span>`;
+        } else {
+          domainInfo.innerHTML = `<span>🌐 ${sameDomainNotes.length} note(s) from ${domain}</span>`;
+        }
+        
+        domainInfo.addEventListener('click', () => {
+          highlightRelatedNotes(sameDomainNotes.map(n => n.id));
+        });
+        relatedInfo.appendChild(domainInfo);
+      }
+      
+      relatedSection.appendChild(relatedLabel);
+      relatedSection.appendChild(relatedInfo);
+    }
+    
+    metadataContainer.appendChild(contextSection);
+    if (relatedSection.children.length > 0) {
+      metadataContainer.appendChild(relatedSection);
+    }
+    
+    return metadataContainer;
+  }
+  
+  // Function to highlight related notes
+  function highlightRelatedNotes(noteIds) {
+    // Remove existing highlights
+    document.querySelectorAll('.bg-blue-900\/20').forEach(el => {
+      el.classList.remove('bg-blue-900/20', 'border-blue-500/50');
+      el.classList.add('bg-gray-800');
+    });
+    
+    // Add highlight to related notes
+    noteIds.forEach(noteId => {
+      const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
+      if (noteElement) {
+        noteElement.classList.remove('bg-gray-800');
+        noteElement.classList.add('bg-blue-900/20', 'border-blue-500/50');
+        
+        // Scroll to first related note
+        if (noteIds.indexOf(noteId) === 0) {
+          noteElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+    
+    // Remove highlights after 5 seconds
+    setTimeout(() => {
+      document.querySelectorAll('.bg-blue-900\/20').forEach(el => {
+        el.classList.remove('bg-blue-900/20', 'border-blue-500/50');
+        el.classList.add('bg-gray-800');
+      });
+    }, 5000);
+  }
 
   // Initial calls
   renderNotes();

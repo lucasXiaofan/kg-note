@@ -28,9 +28,16 @@ client = OpenAI(api_key=os.getenv("DEEPSEEK_API_KEY"), base_url="https://api.dee
 
 CATEGORIES_FILE = "../categories/categories.json"
 
+class WebpageMetadata(BaseModel):
+    title: str = ""
+    url: str = ""
+    domain: str = ""
+    summary: str = ""
+
 class Note(BaseModel):
     content: str
-    url: str = ""  # Make URL optional with default value
+    url: str = ""  # Backward compatibility
+    metadata: WebpageMetadata = None  # New structured metadata
 
 class Category(BaseModel):
     category: str
@@ -103,7 +110,17 @@ async def delete_category(index: int):
 
 @app.post("/categorize")
 async def categorize_note(note: Note):
-    print(f"Received categorization request: content='{note.content[:50]}...', url='{note.url}'")
+    # Extract URL and metadata for context
+    context_url = note.url
+    context_title = ""
+    context_domain = ""
+    
+    if note.metadata:
+        context_url = note.metadata.url or note.url
+        context_title = note.metadata.title
+        context_domain = note.metadata.domain
+    
+    print(f"Received categorization request: content='{note.content[:50]}...', url='{context_url}', title='{context_title}'")
     categories = read_categories()
     
     existing_categories = [f"{cat['category']}: {cat['definition']}" for cat in categories]
@@ -152,13 +169,22 @@ For multiple new categories:
 
 Always provide meaningful, specific categories that help organize knowledge effectively."""
 
+    # Build context information for better categorization
+    context_info = f"URL: {context_url}"
+    if context_title:
+        context_info += f"\nPage Title: {context_title}"
+    if context_domain:
+        context_info += f"\nWebsite: {context_domain}"
+    
     user_prompt = f"""Note Content: "{note.content}"
-URL: "{note.url}"
+
+Webpage Context:
+{context_info}
 
 Existing Categories:
 {json.dumps(existing_categories, indent=2)}
 
-Please categorize this note and respond with JSON only."""
+Please categorize this note considering both the content and the webpage context, and respond with JSON only."""
 
     try:
         response = client.chat.completions.create(

@@ -25,26 +25,52 @@ async function categorizeNote(content, url) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'saveNote') {
-    const noteContent = request.data;
+    const noteData = request.data;
+    const noteContent = typeof noteData === 'string' ? noteData : noteData.content;
+    const noteMetadata = typeof noteData === 'object' ? noteData.metadata : null;
     const noteId = `note-${Date.now()}`;
+    
     chrome.tabs.query({ active: true, currentWindow: true }, async function(tabs) {
-      const url = tabs[0].url;
+      const currentUrl = tabs[0].url;
+      
+      // Use metadata URL if available, otherwise current tab URL
+      const contextUrl = noteMetadata?.url || currentUrl;
       
       // First, categorize the note
       console.log('Categorizing note...');
-      const categories = await categorizeNote(noteContent, url);
+      const categories = await categorizeNote(noteContent, contextUrl);
       console.log('Note categorized as:', categories);
       
       chrome.storage.local.get({ notes: [] }, function(result) {
         const notes = result.notes;
-        notes.push({ 
-          id: noteId, 
-          content: noteContent, 
-          url: url, 
+        
+        // Create note with separated content and metadata
+        const note = {
+          id: noteId,
+          content: noteContent,
+          metadata: noteMetadata || {
+            title: tabs[0].title,
+            url: currentUrl,
+            domain: new URL(currentUrl).hostname,
+            summary: ''
+          },
           category: categories[0], // Backward compatibility
           categories: categories, // Support multiple categories
-          timestamp: Date.now()
-        });
+          timestamp: Date.now(),
+          // YouTube-specific fields for knowledge graph
+          relationships: {
+            type: noteMetadata?.isYouTube ? 'youtube_video' : 'webpage',
+            videoId: noteMetadata?.youtube?.videoId || null,
+            videoTime: noteMetadata?.youtube?.currentTime || null,
+            channelName: noteMetadata?.youtube?.channelName || null,
+            timestampedUrl: noteMetadata?.youtube?.timestampedUrl || null
+          }
+        };
+        
+        // For backward compatibility, also store url at root level
+        note.url = note.metadata.url;
+        
+        notes.push(note);
         chrome.storage.local.set({ notes: notes }, function() {
           if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError);
@@ -123,10 +149,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// Handle overlay toggle with secondary hotkey
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'toggle_overlay') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'showOverlay' }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.log('Content script not ready:', chrome.runtime.lastError.message);
+            // Fallback: inject content script and try again
+            chrome.scripting.executeScript({
+              target: { tabId: tabs[0].id },
+              files: ['content/content.js']
+            }, () => {
+              setTimeout(() => {
+                chrome.tabs.sendMessage(tabs[0].id, { action: 'showOverlay' });
+              }, 100);
+            });
+          }
+        });
+      }
+    });
+  }
+});
+
+// Handle primary hotkey for popup
 chrome.commands.onCommand.addListener((command) => {
   if (command === '_execute_action') {
-    chrome.action.openPopup(() => {
-      chrome.runtime.sendMessage({ action: 'focusPopup' });
-    });
+    // Default popup behavior
   }
 });
