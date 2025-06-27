@@ -4,6 +4,9 @@
 # Build files
 /dist
 
+# Python cache
+__pycache__/
+
 # Log files
 npm-debug.log*
 yarn-debug.log*

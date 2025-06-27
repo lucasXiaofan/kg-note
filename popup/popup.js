@@ -35,18 +35,30 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   viewNotesButton.addEventListener('click', function() {
-    chrome.tabs.create({ url: 'notes.html' });
+    chrome.tabs.create({ url: 'notes/notes.html' });
   });
 
   saveButton.addEventListener('click', function() {
     const noteText = noteArea.value;
     if (noteText.trim() !== '') {
+      // Show saving feedback
+      saveButton.textContent = '💾 Categorizing...';
+      saveButton.disabled = true;
+      
       chrome.runtime.sendMessage({
         action: 'saveNote',
         data: noteText
       }, function(response) {
         if (response && response.status === 'success') {
-          window.close();
+          if (response.category) {
+            saveButton.textContent = `✅ Saved as: ${response.category}`;
+            setTimeout(() => window.close(), 1000);
+          } else {
+            window.close();
+          }
+        } else {
+          saveButton.textContent = '💾 Save Note';
+          saveButton.disabled = false;
         }
       });
     }
