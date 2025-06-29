@@ -9,33 +9,41 @@ Knowledge Weaver is a Chrome extension for personal knowledge management that ca
 ## Development Commands
 
 ### Frontend (Chrome Extension)
-- **Build Tailwind CSS**: `npm run build`
-- **Install dependencies**: `npm install`
+- **Build Tailwind CSS**: `cd frontend && npm run build`
+- **Install dependencies**: `cd frontend && npm install`
 
 ### Backend (FastAPI Server)
-- **Install dependencies**: `pdm install`
-- **Run API server**: `pdm run python api/api.py` (serves on http://localhost:8000)
+- **Install dependencies**: `cd backend && pdm install`
+- **Run API server**: `cd backend && pdm run python src/api/api.py` (serves on http://localhost:8000)
 - **Access API docs**: Visit http://localhost:8000/docs for interactive Swagger UI
 
 ### Setup Requirements
 1. Install pdm: `pip install pdm`
-2. Create `.env` file with `DEEPSEEK_API_KEY=your_api_key`
-3. For Chrome extension: Load unpacked extension from project directory
+2. Create `.env` file in backend directory with `DEEPSEEK_API_KEY=your_api_key`
+3. For Chrome extension: Load unpacked extension from frontend directory
 
 ## Architecture
 
-### Chrome Extension Structure
-- **popup/**: Main extension interface (popup.html/js)
-- **background/**: Service worker (background.js)
-- **content/**: Page interaction scripts (content.js)
-- **notes/**: Notes viewing interface (notes.html/js)
-- **categories/**: Category management UI (categories.html/js)
-- **edit/**: Note editing interface (edit.html/js)
+### Chrome Extension Structure (frontend/)
+- **src/popup/**: Main extension interface (popup.html/js)
+- **src/background/**: Service worker (background.js)
+- **src/content/**: Page interaction scripts (content.js)
+- **src/pages/notes/**: Notes viewing interface (notes.html/js)
+- **src/pages/categories/**: Category management UI (categories.html/js)
+- **src/pages/edit/**: Note editing interface (edit.html/js)
+- **src/pages/sidepanel/**: Side panel interface (sidepanel.html/js)
+- **src/assets/**: CSS and icons
+- **dist/**: Built CSS output
+- **manifest.json**: Extension manifest
 
-### API Server
-- **api/api.py**: FastAPI server handling categorization and CRUD operations
-- **categories/categories.json**: Category definitions storage
+### API Server (backend/)
+- **src/api/api.py**: FastAPI server handling categorization and CRUD operations
+- **data/categories.json**: Category definitions storage
 - Uses OpenAI JSON schema for structured AI responses
+
+### Documentation (docs/)
+- **learning.md**: Development learning notes
+- **tutorial.md**: Tutorial documentation
 
 ### Key Features Architecture
 - **Storage**: Chrome local storage (5MB limit, 512 items max)

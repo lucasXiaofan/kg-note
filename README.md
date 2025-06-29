@@ -28,7 +28,7 @@ This initial phase focuses on building the core features of the extension, allow
 *   **Automatic Categorization:** Notes are automatically categorized using a local FastAPI server powered by the DeepSeek API
 *   **Category Testing:** Test the categorization API directly from the UI with sample content
 *   **Real-time Server Status:** Monitor API server status with visual indicators
-*   **Category Storage:** Categories are stored in `categories/categories.json` file
+*   **Category Storage:** Categories are stored in `backend/data/categories.json` file
 
 #### API Features & Testing
 *   **FastAPI Automatic Documentation:** Access interactive API docs at `http://localhost:8000/docs`
@@ -43,9 +43,10 @@ A local FastAPI server handles automatic categorization and category management.
 
 #### Setup & Installation
 1.  Install `pdm` if you haven't already: `pip install pdm`
-2.  Install the dependencies: `pdm install`
-3.  Create a `.env` file in the root of the project and add your DeepSeek API key: `DEEPSEEK_API_KEY=your_api_key`
-4.  Run the server: `pdm run python api/api.py`
+2.  Navigate to backend directory: `cd backend`
+3.  Install the dependencies: `pdm install`
+4.  Create a `.env` file in the backend directory and add your DeepSeek API key: `DEEPSEEK_API_KEY=your_api_key`
+5.  Run the server: `pdm run python src/api/api.py`
 
 The server will run on `http://localhost:8000`.
 
@@ -104,7 +105,7 @@ If you plan to store a large number of notes, you may eventually hit these limit
 
 **API Testing**
 
-1.  Start the FastAPI server: `pdm run python api/api.py`
+1.  Start the FastAPI server: `cd backend && pdm run python src/api/api.py`
 2.  Open the Categories page in your extension
 3.  Use the built-in API tester to experiment with categorization
 4.  Or visit `http://localhost:8000/docs` for full API documentation
@@ -112,38 +113,80 @@ If you plan to store a large number of notes, you may eventually hit these limit
 
 ## Project Structure
 
-The codebase has been organized into logical directories:
+The codebase has been organized into logical directories following best practices:
 
 ```
 kg-note/
-├── api/                    # FastAPI server
-│   └── api.py             # Main API server file
-├── background/            # Chrome extension background scripts
-│   └── background.js      # Service worker
-├── categories/            # Category management
-│   ├── categories.html    # Categories UI
-│   ├── categories.js      # Categories logic
-│   └── categories.json    # Categories data
-├── content/               # Content scripts
-│   └── content.js         # Page interaction script
-├── edit/                  # Note editing interface
-│   ├── edit.html          # Edit page UI
-│   └── edit.js           # Edit page logic
-├── notes/                 # Notes management
-│   ├── notes.html         # Notes viewing UI
-│   └── notes.js          # Notes viewing logic
-├── popup/                 # Extension popup
-│   ├── popup.html         # Popup UI
-│   └── popup.js          # Popup logic
-├── static/               # Static assets
-│   ├── css/              # Compiled CSS
-│   └── icons/            # Extension icons
-├── dist/                 # Build output
-├── manifest.json         # Extension manifest
-└── README.md            # This file
+├── docs/                          # Documentation
+│   ├── learning.md               # Development notes
+│   └── tutorial.md               # Tutorial documentation
+├── frontend/                     # Chrome Extension
+│   ├── src/
+│   │   ├── background/           # Service worker
+│   │   │   └── background.js
+│   │   ├── content/              # Content scripts
+│   │   │   └── content.js
+│   │   ├── popup/                # Main extension UI
+│   │   │   ├── popup.html
+│   │   │   └── popup.js
+│   │   ├── pages/                # Extension pages
+│   │   │   ├── notes/            # Notes viewing interface
+│   │   │   │   ├── notes.html
+│   │   │   │   └── notes.js
+│   │   │   ├── categories/       # Category management UI
+│   │   │   │   ├── categories.html
+│   │   │   │   └── categories.js
+│   │   │   ├── edit/             # Note editing interface
+│   │   │   │   ├── edit.html
+│   │   │   │   └── edit.js
+│   │   │   └── sidepanel/        # Side panel interface
+│   │   │       ├── sidepanel.html
+│   │   │       └── sidepanel.js
+│   │   └── assets/               # Static assets
+│   │       ├── css/              # Source CSS
+│   │       │   └── input.css
+│   │       └── icons/            # Extension icons
+│   ├── dist/                     # Built CSS output
+│   ├── manifest.json             # Extension manifest
+│   ├── package.json              # Frontend dependencies
+│   └── tailwind.config.js        # Tailwind configuration
+├── backend/                      # FastAPI Server
+│   ├── src/
+│   │   └── api/
+│   │       └── api.py            # Main API server
+│   ├── data/
+│   │   └── categories.json       # Category definitions
+│   ├── pyproject.toml            # Python dependencies
+│   ├── pdm.lock                  # Dependency lock file
+│   └── .env                      # Environment variables
+├── CLAUDE.md                     # Development instructions
+└── README.md                     # This file
 ```
 
+### Installation & Setup
+
+#### Frontend (Chrome Extension)
+1. Navigate to frontend directory: `cd frontend`
+2. Install dependencies: `npm install`
+3. Build Tailwind CSS: `npm run build`
+4. Load unpacked extension in Chrome from the `frontend/` directory
+
+#### Backend (FastAPI Server)
+1. Navigate to backend directory: `cd backend`
+2. Install dependencies: `pdm install`
+3. Create `.env` file with your DeepSeek API key: `DEEPSEEK_API_KEY=your_api_key`
+4. Run the server: `pdm run python src/api/api.py`
+
 ## Recent Updates
+
+### Version 0.2.0 - Project Restructuring & Organization
+*   ✅ **Organized Project Structure:** Clean separation of frontend/backend/docs
+*   ✅ **Frontend Structure:** All Chrome extension files organized in `frontend/src/`
+*   ✅ **Backend Structure:** FastAPI server organized in `backend/src/api/`
+*   ✅ **Documentation:** Moved learning materials to dedicated `docs/` folder
+*   ✅ **Build System:** Updated Tailwind CSS build paths and configuration
+*   ✅ **Updated .gitignore:** Proper exclusion of node_modules and build artifacts
+*   ✅ **Path References:** All internal file references updated for new structure
 
 ### Version 0.1.1 - Enhanced Category Management
 *   ✅ Comprehensive category management UI
@@ -196,6 +239,37 @@ kg-note/
 *   ✅ **Future-ready** - storage tracking designed to work with external databases when implemented
 
 ## Future Development
+
+## Known Issues
+
+### Export Functionality
+*   **Incomplete Export Data:** Export feature only exports note content but excludes:
+    - URL context/metadata for each note
+    - Category assignments per note
+    - Overall category definitions
+*   **Missing Category Export:** No option to export category definitions separately
+
+### YouTube Integration
+*   **Side Panel UX:** After saving a note in YouTube:
+    - Side panel should disappear immediately
+    - Video should resume playback automatically
+    - Categorization should happen in background without blocking UI
+*   **Author Name Caching:** Video author name sometimes shows previous video's author
+    - Requires page refresh to display correct author
+    - Likely a content script caching issue
+
+### Extension UI/UX
+*   **Popup Default Behavior:** Extension popup defaults to note-taking interface
+    - Users may prefer quick access to View/Export functions
+    - Consider redesigning popup layout for better workflow
+
+## Feature Requests
+
+### Context-Free Note Taking
+*   **No-Context Mode:** Option to take notes without URL/webpage context
+    - Toggle to disable automatic context capture
+    - For general thoughts/ideas not tied to current page
+    - Separate storage/categorization for context-free notes
 
 ### Phase 2: Advanced Features
 

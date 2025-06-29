@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   viewNotesButton.addEventListener('click', function() {
-    chrome.tabs.create({ url: 'notes/notes.html' });
+    chrome.tabs.create({ url: 'src/pages/notes/notes.html' });
   });
 
   // Toggle context visibility
