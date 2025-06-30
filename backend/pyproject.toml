@@ -5,7 +5,14 @@ description = "Default template for PDM package"
 authors = [
     {name = "lucasXiaofan", email = "grammarlyuse364@gmail.com"},
 ]
-dependencies = ["fastapi>=0.115.14", "uvicorn>=0.34.3", "openai>=1.92.2", "python-dotenv>=1.1.1"]
+dependencies = [
+    "fastapi>=0.115.14", 
+    "uvicorn[standard]>=0.34.3", 
+    "openai>=1.92.2", 
+    "python-dotenv>=1.1.1",
+    "google-cloud-firestore>=2.13.1",
+    "google-auth>=2.25.0"
+]
 requires-python = "==3.13.*"
 readme = "README.md"
 license = {text = "MIT"}

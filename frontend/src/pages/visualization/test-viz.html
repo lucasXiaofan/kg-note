@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph Test</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .node {
+            cursor: pointer;
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold text-blue-400 mb-6">📊 Knowledge Graph Test</h1>
+        
+        <!-- Status -->
+        <div id="status" class="mb-4 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+            <div id="status-text">Initializing...</div>
+        </div>
+        
+        <!-- File Upload -->
+        <div class="mb-4 p-4 bg-gray-800 border border-gray-600 rounded-lg">
+            <input type="file" id="file-input" accept=".json" class="mb-2">
+            <button id="load-sample" class="px-4 py-2 bg-blue-600 text-white rounded">Load Sample</button>
+            <button id="test-d3" class="px-4 py-2 bg-green-600 text-white rounded">Test D3</button>
+        </div>
+        
+        <!-- Graph -->
+        <div id="graph-container" class="bg-gray-800 border border-gray-600 rounded-lg" style="height: 400px;">
+            <svg id="graph" width="100%" height="100%"></svg>
+        </div>
+        
+        <!-- Debug Info -->
+        <div id="debug" class="mt-4 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+            <h3 class="font-semibold">Debug Info:</h3>
+            <div id="debug-content">No debug info yet</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            console.log(message);
+            const debugContent = document.getElementById('debug-content');
+            debugContent.innerHTML += '<div>' + message + '</div>';
+        }
+
+        function setStatus(message, type = 'info') {
+            const statusText = document.getElementById('status-text');
+            const statusDiv = document.getElementById('status');
+            statusText.textContent = message;
+            
+            statusDiv.className = 'mb-4 p-3 border border-gray-600 rounded-lg ' + 
+                (type === 'error' ? 'bg-red-800' : type === 'success' ? 'bg-green-800' : 'bg-gray-800');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded');
+            
+            // Check D3
+            if (typeof d3 === 'undefined') {
+                setStatus('D3.js not loaded!', 'error');
+                log('ERROR: D3.js not available');
+                return;
+            }
+            
+            log('D3.js version: ' + d3.version);
+            setStatus('D3.js loaded successfully');
+            
+            // Test D3 button
+            document.getElementById('test-d3').addEventListener('click', function() {
+                log('Testing D3...');
+                
+                const svg = d3.select('#graph');
+                svg.selectAll('*').remove();
+                
+                // Create simple test circles
+                const testData = [
+                    {id: 'note1', x: 100, y: 100, type: 'note'},
+                    {id: 'note2', x: 200, y: 150, type: 'note'},
+                    {id: 'cat1', x: 150, y: 200, type: 'category'}
+                ];
+                
+                const testLinks = [
+                    {source: 'note1', target: 'cat1'},
+                    {source: 'note2', target: 'cat1'}
+                ];
+                
+                // Add links
+                svg.selectAll('.link')
+                    .data(testLinks)
+                    .enter()
+                    .append('line')
+                    .attr('class', 'link')
+                    .attr('x1', d => testData.find(n => n.id === d.source).x)
+                    .attr('y1', d => testData.find(n => n.id === d.source).y)
+                    .attr('x2', d => testData.find(n => n.id === d.target).x)
+                    .attr('y2', d => testData.find(n => n.id === d.target).y);
+                
+                // Add nodes
+                svg.selectAll('.node')
+                    .data(testData)
+                    .enter()
+                    .append('circle')
+                    .attr('class', 'node')
+                    .attr('r', 20)
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y)
+                    .style('fill', d => d.type === 'note' ? '#3b82f6' : '#10b981');
+                
+                // Add labels
+                svg.selectAll('.label')
+                    .data(testData)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'label')
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y + 5)
+                    .attr('text-anchor', 'middle')
+                    .style('fill', 'white')
+                    .style('font-size', '12px')
+                    .text(d => d.id);
+                
+                setStatus('D3 test completed - should see 3 connected circles', 'success');
+                log('D3 test circles created');
+            });
+            
+            // Load sample data
+            document.getElementById('load-sample').addEventListener('click', function() {
+                log('Loading sample data...');
+                
+                const sampleData = {
+                    metadata: { totalNotes: 2, totalCategories: 1 },
+                    categories: [
+                        { category: "Test Category", definition: "A test category" }
+                    ],
+                    notes: [
+                        {
+                            id: "note-1",
+                            content: "This is a test note about machine learning",
+                            categories: ["Test Category"],
+                            metadata: { domain: "test.com", title: "Test Page" }
+                        },
+                        {
+                            id: "note-2", 
+                            content: "Another note about programming",
+                            categories: ["Test Category"],
+                            metadata: { domain: "example.com", title: "Example Page" }
+                        }
+                    ]
+                };
+                
+                log('Sample data created: ' + JSON.stringify(sampleData, null, 2));
+                
+                try {
+                    loadGraph(sampleData);
+                    setStatus('Sample data loaded successfully', 'success');
+                } catch (error) {
+                    setStatus('Error loading sample data: ' + error.message, 'error');
+                    log('ERROR: ' + error.message);
+                }
+            });
+            
+            // File upload
+            document.getElementById('file-input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    log('File selected: ' + file.name);
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            log('JSON parsed successfully');
+                            loadGraph(data);
+                            setStatus('File loaded successfully', 'success');
+                        } catch (error) {
+                            setStatus('JSON parse error: ' + error.message, 'error');
+                            log('ERROR parsing JSON: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            function loadGraph(data) {
+                log('Processing graph data...');
+                
+                const nodes = [];
+                const links = [];
+                
+                // Process categories
+                if (data.categories) {
+                    data.categories.forEach(cat => {
+                        nodes.push({
+                            id: 'cat-' + cat.category,
+                            name: cat.category,
+                            type: 'category'
+                        });
+                    });
+                }
+                
+                // Process notes
+                if (data.notes) {
+                    data.notes.forEach(note => {
+                        nodes.push({
+                            id: note.id,
+                            name: note.content.substring(0, 30) + '...',
+                            type: 'note'
+                        });
+                        
+                        // Link to categories
+                        if (note.categories) {
+                            note.categories.forEach(catName => {
+                                links.push({
+                                    source: note.id,
+                                    target: 'cat-' + catName
+                                });
+                            });
+                        }
+                        
+                        // Add domain nodes
+                        if (note.metadata && note.metadata.domain) {
+                            const domainId = 'domain-' + note.metadata.domain;
+                            if (!nodes.find(n => n.id === domainId)) {
+                                nodes.push({
+                                    id: domainId,
+                                    name: note.metadata.domain,
+                                    type: 'domain'
+                                });
+                            }
+                            links.push({
+                                source: note.id,
+                                target: domainId
+                            });
+                        }
+                    });
+                }
+                
+                log('Created ' + nodes.length + ' nodes and ' + links.length + ' links');
+                
+                // Create visualization
+                createVisualization(nodes, links);
+            }
+            
+            function createVisualization(nodes, links) {
+                log('Creating D3 visualization...');
+                
+                const svg = d3.select('#graph');
+                const width = 800;
+                const height = 400;
+                
+                svg.selectAll('*').remove();
+                
+                const simulation = d3.forceSimulation(nodes)
+                    .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                    .force('charge', d3.forceManyBody().strength(-300))
+                    .force('center', d3.forceCenter(width / 2, height / 2));
+                
+                const link = svg.selectAll('.link')
+                    .data(links)
+                    .enter()
+                    .append('line')
+                    .attr('class', 'link');
+                
+                const node = svg.selectAll('.node')
+                    .data(nodes)
+                    .enter()
+                    .append('circle')
+                    .attr('class', 'node')
+                    .attr('r', 15)
+                    .style('fill', d => {
+                        if (d.type === 'note') return '#3b82f6';
+                        if (d.type === 'category') return '#10b981';
+                        if (d.type === 'domain') return '#f59e0b';
+                        return '#6b7280';
+                    })
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended));
+                
+                const label = svg.selectAll('.label')
+                    .data(nodes)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'label')
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', -20)
+                    .style('fill', 'white')
+                    .style('font-size', '10px')
+                    .text(d => d.name);
+                
+                simulation.on('tick', () => {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+                    
+                    node
+                        .attr('cx', d => d.x)
+                        .attr('cy', d => d.y);
+                    
+                    label
+                        .attr('x', d => d.x)
+                        .attr('y', d => d.y);
+                });
+                
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+                
+                log('Visualization created successfully');
+            }
+            
+            setStatus('Ready - click Load Sample or Test D3 to begin');
+        });
+    </script>
+</body>
+</html>

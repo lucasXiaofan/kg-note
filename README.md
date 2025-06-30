@@ -1,6 +1,7 @@
 # Knowledge Weaver
 
 Knowledge Weaver is a Chrome extension designed to help you capture, organize, and connect your ideas as you browse the web. It aims to be a powerful tool for personal knowledge management, leveraging AI to automatically categorize your notes and build a knowledge graph.
+I found there is another usage of weaver: provide the context of notes
 
 ## Phase 1: Core Functionality (In Progress)
 

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Visualization</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-400 mb-2">📊 Choose Your Visualization</h1>
+            <p class="text-gray-400">Select the visualization type that works best for you</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-center mb-8">
+            <a href="../notes/notes.html" class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded-lg transition-colors">
+                ← Back to Notes
+            </a>
+        </div>
+
+        <!-- Visualization Options -->
+        <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            
+            <!-- Simple Canvas Version -->
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 hover:border-green-500 transition-all cursor-pointer" onclick="window.location.href='simple-viz.html'">
+                <div class="text-center mb-4">
+                    <div class="text-4xl mb-2">🚀</div>
+                    <h2 class="text-xl font-semibold text-green-400">Simple Canvas Version</h2>
+                    <div class="inline-block bg-green-600 text-white text-xs px-2 py-1 rounded-full mt-2">Recommended</div>
+                </div>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✅</span>
+                        <span>Pure HTML5 Canvas - no dependencies</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✅</span>
+                        <span>Fast and reliable</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✅</span>
+                        <span>Interactive drag, zoom, click</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✅</span>
+                        <span>Works offline</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✅</span>
+                        <span>Simple, clean interface</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        Use Simple Version
+                    </button>
+                </div>
+            </div>
+
+            <!-- D3.js Advanced Version -->
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 hover:border-blue-500 transition-all cursor-pointer" onclick="window.location.href='visualization.html'">
+                <div class="text-center mb-4">
+                    <div class="text-4xl mb-2">⚙️</div>
+                    <h2 class="text-xl font-semibold text-blue-400">D3.js Advanced Version</h2>
+                    <div class="inline-block bg-yellow-600 text-white text-xs px-2 py-1 rounded-full mt-2">Advanced</div>
+                </div>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-400">🔧</span>
+                        <span>D3.js powered visualization</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-400">🎛️</span>
+                        <span>Advanced controls and filters</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-400">📊</span>
+                        <span>Complex force simulations</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-400">💾</span>
+                        <span>SVG export capability</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400">⚠️</span>
+                        <span>May have loading issues</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        Try D3.js Version
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alternative Options -->
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 hover:border-purple-500 transition-all cursor-pointer" onclick="window.location.href='improved-viz.html'">
+                <div class="text-center mb-4">
+                    <div class="text-4xl mb-2">🔬</div>
+                    <h2 class="text-xl font-semibold text-purple-400">Improved Version</h2>
+                    <div class="inline-block bg-purple-600 text-white text-xs px-2 py-1 rounded-full mt-2">Experimental</div>
+                </div>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-center gap-2">
+                        <span class="text-purple-400">🧪</span>
+                        <span>Enhanced D3.js implementation</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-purple-400">🎨</span>
+                        <span>Better visual styling</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-purple-400">⚡</span>
+                        <span>Performance optimizations</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400">⚠️</span>
+                        <span>Experimental features</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                        Try Improved Version
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fallback Version -->
+            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 hover:border-gray-400 transition-all cursor-pointer" onclick="window.location.href='fallback-viz.html'">
+                <div class="text-center mb-4">
+                    <div class="text-4xl mb-2">🛡️</div>
+                    <h2 class="text-xl font-semibold text-gray-400">Fallback Version</h2>
+                    <div class="inline-block bg-gray-600 text-white text-xs px-2 py-1 rounded-full mt-2">Basic</div>
+                </div>
+                <div class="space-y-3 text-sm text-gray-300">
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400">🔒</span>
+                        <span>Maximum compatibility</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400">📱</span>
+                        <span>Works on all devices</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400">🎯</span>
+                        <span>Simple implementation</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400">⚡</span>
+                        <span>Lightweight</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors">
+                        Use Fallback Version
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick Access -->
+        <div class="text-center mt-8">
+            <p class="text-sm text-gray-400 mb-4">Not sure which to choose?</p>
+            <div class="flex justify-center gap-4">
+                <a href="simple-viz.html" class="py-2 px-6 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    🚀 Start with Simple
+                </a>
+                <a href="visualization.html" class="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                    🔧 Try D3.js Advanced
+                </a>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="text-center mt-8 p-4 bg-gray-800 border border-gray-600 rounded-lg max-w-2xl mx-auto">
+            <p class="text-sm text-gray-400">
+                💡 <strong>Tip:</strong> If you're experiencing issues with any version, the Simple Canvas Version is the most reliable option.
+                All versions can load the same data files and provide knowledge graph visualization.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

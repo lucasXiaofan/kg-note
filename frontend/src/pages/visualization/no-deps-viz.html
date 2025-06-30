@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph Explorer - No Dependencies</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .title {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .controls {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 2px solid #4b5563;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .file-input {
+            background: #374151;
+            color: white;
+            border: 2px solid #6b7280;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .file-input:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        
+        .search-input {
+            background: #374151;
+            color: white;
+            border: 2px solid #6b7280;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 500px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .status {
+            background: #374151;
+            border: 2px solid #6b7280;
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .status.success {
+            background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+            border-color: #10b981;
+            color: #ffffff;
+        }
+        
+        .status.error {
+            background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%);
+            border-color: #ef4444;
+            color: #ffffff;
+        }
+        
+        .status.warning {
+            background: linear-gradient(135deg, #78350f 0%, #f59e0b 100%);
+            border-color: #f59e0b;
+            color: #ffffff;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        
+        .content-area {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 2px solid #4b5563;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 700px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 2px solid #4b5563;
+            border-radius: 15px;
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            color: #60a5fa;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .filter-btn:hover {
+            background: #6b7280;
+            transform: translateY(-1px);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .node-card {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+            border: 2px solid #6b7280;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border-color: #3b82f6;
+        }
+        
+        .node-card.selected {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+        }
+        
+        .node-card.note {
+            border-left: 6px solid #3b82f6;
+        }
+        
+        .node-card.category {
+            border-left: 6px solid #10b981;
+        }
+        
+        .node-card.domain {
+            border-left: 6px solid #f59e0b;
+        }
+        
+        .node-card.url_context {
+            border-left: 6px solid #8b5cf6;
+        }
+        
+        .node-type-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .node-title {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            line-height: 1.4;
+            padding-right: 80px;
+        }
+        
+        .node-preview {
+            color: #d1d5db;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .node-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #9ca3af;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #6b7280;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #60a5fa;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #d1d5db;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            margin-bottom: 25px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .details-panel {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 2px solid #6b7280;
+        }
+        
+        .details-title {
+            color: #60a5fa;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .details-content {
+            line-height: 1.6;
+        }
+        
+        .content-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 12px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 60px 20px;
+            font-size: 1.1em;
+        }
+        
+        .link {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dotted #60a5fa;
+            transition: color 0.3s ease;
+        }
+        
+        .link:hover {
+            color: #93c5fd;
+        }
+        
+        .connection-list {
+            margin-top: 15px;
+        }
+        
+        .connection-item {
+            background: rgba(255,255,255,0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 5px 0;
+            font-size: 0.9em;
+            border-left: 3px solid #60a5fa;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .node-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-input {
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🧠 Knowledge Graph Explorer</h1>
+            <p class="subtitle">Explore your personal knowledge network - no external dependencies required</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-section">
+                <label class="control-label">📁 Load Your Data</label>
+                <div class="control-row">
+                    <input type="file" id="file-input" accept=".json" class="file-input">
+                    <button id="load-sample" class="btn btn-warning">🎯 Try Demo Data</button>
+                    <button id="clear-all" class="btn btn-danger">🗑️ Clear All</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <label class="control-label">🔍 Search & Filter</label>
+                <div class="control-row">
+                    <input type="text" id="search-input" placeholder="Search your notes, categories, domains..." class="search-input">
+                </div>
+            </div>
+            
+            <div id="status" class="status">🚀 Ready to explore! Upload your JSON file or try the demo data to begin.</div>
+            
+            <div id="filter-container" style="margin-top: 20px;">
+                <!-- Filter buttons will be added here -->
+            </div>
+        </div>
+        
+        <div class="main-grid">
+            <div class="content-area">
+                <h2 class="section-title">📚 Knowledge Items</h2>
+                <div id="nodes-container" class="node-grid">
+                    <div class="no-data">
+                        👆 Click "🎯 Try Demo Data" to see how it works, or upload your knowledge-weaver JSON file to explore your actual notes and connections.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <h3 class="section-title">🎨 Legend</h3>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <span>📝 Notes - Your captured thoughts and ideas</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>📂 Categories - Topics and tags</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>🌐 Domains - Websites and sources</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8b5cf6;"></div>
+                        <span>🔗 URLs - Specific web pages</span>
+                    </div>
+                </div>
+                
+                <h3 class="section-title">📊 Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="notes-count">0</div>
+                        <div class="stat-label">Notes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="categories-count">0</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="domains-count">0</div>
+                        <div class="stat-label">Domains</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="connections-count">0</div>
+                        <div class="stat-label">Connections</div>
+                    </div>
+                </div>
+                
+                <h3 class="section-title">ℹ️ Details</h3>
+                <div class="details-panel" id="details-panel">
+                    <p>Click on any knowledge item above to see detailed information, including full content, connections, and metadata.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let allData = { nodes: [], connections: 0 };
+        let currentData = { nodes: [], connections: 0 };
+        let selectedNode = null;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Knowledge Graph Explorer loading...');
+            setupEventListeners();
+            setStatus('✅ Ready to explore! No external libraries needed.', 'success');
+        });
+
+        function setupEventListeners() {
+            document.getElementById('file-input').addEventListener('change', handleFileUpload);
+            document.getElementById('load-sample').addEventListener('click', loadSampleData);
+            document.getElementById('clear-all').addEventListener('click', clearAll);
+            
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', debounce(handleSearch, 300));
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+
+        function setStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            console.log(`📢 ${message}`);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            setStatus('📁 Reading your file...', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadKnowledgeGraph(data);
+                } catch (error) {
+                    setStatus('❌ Invalid JSON file. Please check the format.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadSampleData() {
+            setStatus('🎯 Loading demonstration data...', 'info');
+            
+            const sampleData = {
+                metadata: { totalNotes: 6, totalCategories: 3 },
+                categories: [
+                    { category: "Machine Learning", definition: "AI, machine learning, and deep learning concepts, algorithms, and applications" },
+                    { category: "Web Development", definition: "Frontend and backend web technologies, frameworks, and development practices" },
+                    { category: "Productivity", definition: "Tools, techniques, and strategies for improving personal and professional efficiency" }
+                ],
+                notes: [
+                    {
+                        id: "note-1",
+                        content: "Transformer models have revolutionized natural language processing through their attention mechanism. Unlike RNNs, transformers can process sequences in parallel, making them more efficient for training. The key innovation is the self-attention mechanism that allows the model to weigh the importance of different words when processing each token. This has enabled breakthroughs in language models like GPT and BERT.",
+                        categories: ["Machine Learning"],
+                        metadata: {
+                            title: "Understanding Transformer Architecture",
+                            url: "https://arxiv.org/abs/1706.03762",
+                            domain: "arxiv.org",
+                            summary: "The seminal 'Attention Is All You Need' paper that introduced transformers"
+                        },
+                        timestamp: Date.now() - 86400000
+                    },
+                    {
+                        id: "note-2",
+                        content: "React hooks fundamentally changed how we write React applications. useState and useEffect allow functional components to manage state and side effects without classes. Custom hooks enable logic reuse across components. The rules of hooks ensure predictable behavior: only call hooks at the top level and only from React functions.",
+                        categories: ["Web Development"],
+                        metadata: {
+                            title: "React Hooks: A Complete Guide",
+                            url: "https://reactjs.org/docs/hooks-intro.html",
+                            domain: "reactjs.org",
+                            summary: "Official React documentation introducing hooks"
+                        },
+                        timestamp: Date.now() - 43200000
+                    },
+                    {
+                        id: "note-3",
+                        content: "Time blocking is a productivity technique where you schedule specific time slots for different activities. Instead of working from a todo list, you allocate time in your calendar for focused work. This prevents overcommitment, reduces context switching, and ensures important tasks get adequate attention. It works well with deep work principles.",
+                        categories: ["Productivity"],
+                        metadata: {
+                            title: "Master Time Blocking for Deep Focus",
+                            url: "https://blog.rescuetime.com/time-blocking/",
+                            domain: "blog.rescuetime.com",
+                            summary: "Comprehensive guide to implementing time blocking"
+                        },
+                        timestamp: Date.now() - 21600000
+                    },
+                    {
+                        id: "note-4",
+                        content: "Vector databases are specialized systems for storing and querying high-dimensional embeddings. They're essential for semantic search, recommendation systems, and RAG applications. Popular options include Pinecone, Weaviate, and Chroma. Key features include similarity search, metadata filtering, and integration with ML pipelines.",
+                        categories: ["Machine Learning", "Web Development"],
+                        metadata: {
+                            title: "Vector Databases for AI Applications",
+                            url: "https://www.pinecone.io/learn/vector-database/",
+                            domain: "pinecone.io",
+                            summary: "Understanding vector databases and their use cases"
+                        },
+                        timestamp: Date.now() - 10800000
+                    },
+                    {
+                        id: "note-5",
+                        content: "GraphQL provides a query language for APIs that allows clients to request exactly the data they need. Unlike REST, it uses a single endpoint and strong typing. Features include introspection, real-time subscriptions, and efficient data fetching. Tools like Apollo make it easy to implement in React applications.",
+                        categories: ["Web Development"],
+                        metadata: {
+                            title: "GraphQL vs REST: Complete Comparison",
+                            url: "https://graphql.org/learn/thinking-in-graphs/",
+                            domain: "graphql.org",
+                            summary: "Official GraphQL learning resource"
+                        },
+                        timestamp: Date.now() - 7200000
+                    },
+                    {
+                        id: "note-6",
+                        content: "The Pomodoro Technique uses focused 25-minute work sessions followed by 5-minute breaks. After four pomodoros, take a longer 15-30 minute break. This technique leverages the brain's natural attention cycles, maintains high focus, and prevents mental fatigue. It's particularly effective for tasks requiring deep concentration.",
+                        categories: ["Productivity"],
+                        metadata: {
+                            title: "Pomodoro Technique: Complete Implementation Guide",
+                            url: "https://todoist.com/productivity-methods/pomodoro-technique",
+                            domain: "todoist.com",
+                            summary: "How to effectively use the Pomodoro Technique"
+                        },
+                        timestamp: Date.now() - 3600000
+                    }
+                ]
+            };
+            
+            setTimeout(() => loadKnowledgeGraph(sampleData), 500);
+        }
+
+        function loadKnowledgeGraph(data) {
+            try {
+                const processed = processData(data);
+                allData = processed;
+                currentData = { ...processed };
+                
+                createFilterButtons();
+                displayNodes();
+                updateStatistics();
+                
+                setStatus(`✅ Successfully loaded ${processed.nodes.length} knowledge items!`, 'success');
+                
+            } catch (error) {
+                setStatus('❌ Error processing data: ' + error.message, 'error');
+            }
+        }
+
+        function processData(data) {
+            const nodes = [];
+            let connectionCount = 0;
+            
+            // Process categories
+            if (data.categories) {
+                data.categories.forEach(category => {
+                    nodes.push({
+                        id: `category-${category.category}`,
+                        type: 'category',
+                        name: category.category,
+                        data: {
+                            definition: category.definition,
+                            type: 'category'
+                        },
+                        connections: []
+                    });
+                });
+            }
+            
+            // Process notes
+            if (data.notes) {
+                data.notes.forEach(note => {
+                    const noteNode = {
+                        id: note.id,
+                        type: 'note',
+                        name: note.content.length > 150 ? note.content.substring(0, 150) + '...' : note.content,
+                        data: {
+                            content: note.content,
+                            categories: note.categories || [],
+                            metadata: note.metadata || {},
+                            timestamp: note.timestamp,
+                            wordCount: note.content.split(' ').length,
+                            type: 'note'
+                        },
+                        connections: []
+                    };
+                    nodes.push(noteNode);
+                    
+                    // Create connections
+                    if (note.categories) {
+                        note.categories.forEach(categoryName => {
+                            const categoryId = `category-${categoryName}`;
+                            noteNode.connections.push({
+                                target: categoryId,
+                                type: 'category',
+                                label: `Tagged as ${categoryName}`
+                            });
+                            connectionCount++;
+                            
+                            const categoryNode = nodes.find(n => n.id === categoryId);
+                            if (categoryNode) {
+                                categoryNode.connections.push({
+                                    target: note.id,
+                                    type: 'note',
+                                    label: 'Contains note'
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Add domain
+                    if (note.metadata?.domain) {
+                        const domainId = `domain-${note.metadata.domain}`;
+                        let domainNode = nodes.find(n => n.id === domainId);
+                        
+                        if (!domainNode) {
+                            domainNode = {
+                                id: domainId,
+                                type: 'domain',
+                                name: note.metadata.domain,
+                                data: {
+                                    domain: note.metadata.domain,
+                                    noteCount: 1,
+                                    type: 'domain'
+                                },
+                                connections: []
+                            };
+                            nodes.push(domainNode);
+                        } else {
+                            domainNode.data.noteCount++;
+                        }
+                        
+                        noteNode.connections.push({
+                            target: domainId,
+                            type: 'domain',
+                            label: `From ${note.metadata.domain}`
+                        });
+                        connectionCount++;
+                        
+                        domainNode.connections.push({
+                            target: note.id,
+                            type: 'note',
+                            label: 'Source of note'
+                        });
+                    }
+                    
+                    // Add URL
+                    if (note.metadata?.url) {
+                        const urlId = `url-${btoa(note.metadata.url).substring(0, 8)}`;
+                        let urlNode = nodes.find(n => n.id === urlId);
+                        
+                        if (!urlNode) {
+                            urlNode = {
+                                id: urlId,
+                                type: 'url_context',
+                                name: note.metadata.title || 'Web Page',
+                                data: {
+                                    url: note.metadata.url,
+                                    title: note.metadata.title,
+                                    summary: note.metadata.summary || '',
+                                    type: 'url_context'
+                                },
+                                connections: []
+                            };
+                            nodes.push(urlNode);
+                        }
+                        
+                        noteNode.connections.push({
+                            target: urlId,
+                            type: 'url',
+                            label: 'Source page'
+                        });
+                        connectionCount++;
+                        
+                        urlNode.connections.push({
+                            target: note.id,
+                            type: 'note',
+                            label: 'Generated note'
+                        });
+                    }
+                });
+            }
+            
+            return { nodes, connections: connectionCount };
+        }
+
+        function createFilterButtons() {
+            const container = document.getElementById('filter-container');
+            container.innerHTML = '<label class="control-label">🎛️ Filter by Type</label><div class="filter-grid" id="filter-grid"></div>';
+            
+            const filterGrid = document.getElementById('filter-grid');
+            const nodeTypes = [...new Set(currentData.nodes.map(n => n.type))];
+            const typeIcons = {
+                note: '📝',
+                category: '📂',
+                domain: '🌐',
+                url_context: '🔗'
+            };
+            
+            // All button
+            const allBtn = document.createElement('button');
+            allBtn.className = 'filter-btn active';
+            allBtn.innerHTML = `🔍 All (${currentData.nodes.length})`;
+            allBtn.onclick = () => filterByType('all', allBtn);
+            filterGrid.appendChild(allBtn);
+            
+            // Type buttons
+            nodeTypes.forEach(type => {
+                const count = currentData.nodes.filter(n => n.type === type).length;
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.innerHTML = `${typeIcons[type]} ${type} (${count})`;
+                btn.onclick = () => filterByType(type, btn);
+                filterGrid.appendChild(btn);
+            });
+        }
+
+        function filterByType(type, buttonEl) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            buttonEl.classList.add('active');
+            
+            if (type === 'all') {
+                currentData = { ...allData };
+            } else {
+                const filteredNodes = allData.nodes.filter(n => n.type === type);
+                currentData = { nodes: filteredNodes, connections: allData.connections };
+            }
+            
+            displayNodes();
+            updateStatistics();
+            setStatus(`Showing ${currentData.nodes.length} ${type === 'all' ? 'items' : type + ' items'}`, 'info');
+        }
+
+        function displayNodes() {
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = '';
+            
+            if (currentData.nodes.length === 0) {
+                container.innerHTML = '<div class="no-data">No items match your current filter or search.</div>';
+                return;
+            }
+            
+            currentData.nodes.forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = `node-card ${node.type}`;
+                nodeEl.onclick = () => selectNode(node, nodeEl);
+                
+                const typeEmojis = {
+                    note: '📝',
+                    category: '📂',
+                    domain: '🌐',
+                    url_context: '🔗'
+                };
+                
+                nodeEl.innerHTML = `
+                    <div class="node-type-badge">${typeEmojis[node.type]} ${node.type}</div>
+                    <div class="node-title">${node.name}</div>
+                    <div class="node-preview">${getNodePreview(node)}</div>
+                    <div class="node-meta">
+                        <span>🔗 ${node.connections.length} connections</span>
+                        <span>${getNodeMeta(node)}</span>
+                    </div>
+                `;
+                
+                container.appendChild(nodeEl);
+            });
+        }
+
+        function getNodePreview(node) {
+            switch (node.type) {
+                case 'note':
+                    const cats = node.data.categories.length > 0 ? 
+                        `📂 ${node.data.categories.join(', ')} • ` : '';
+                    return `${cats}📊 ${node.data.wordCount} words`;
+                    
+                case 'category':
+                    return node.data.definition || 'No definition provided';
+                    
+                case 'domain':
+                    return `🌐 ${node.data.domain} • ${node.data.noteCount || 1} notes`;
+                    
+                case 'url_context':
+                    return node.data.summary || `🔗 ${node.data.url}`;
+                    
+                default:
+                    return '';
+            }
+        }
+
+        function getNodeMeta(node) {
+            if (node.type === 'note' && node.data.timestamp) {
+                return new Date(node.data.timestamp).toLocaleDateString();
+            }
+            return '';
+        }
+
+        function selectNode(node, nodeEl) {
+            document.querySelectorAll('.node-card').forEach(el => el.classList.remove('selected'));
+            nodeEl.classList.add('selected');
+            
+            selectedNode = node;
+            showNodeDetails(node);
+        }
+
+        function showNodeDetails(node) {
+            const detailsEl = document.getElementById('details-panel');
+            
+            const typeEmojis = {
+                note: '📝',
+                category: '📂',
+                domain: '🌐',
+                url_context: '🔗'
+            };
+            
+            let html = `
+                <div class="details-title">${typeEmojis[node.type]} ${node.type.charAt(0).toUpperCase() + node.type.slice(1)} Details</div>
+                <div class="details-content">
+                    <p><strong>Name:</strong> ${node.name}</p>
+                    <p><strong>Connections:</strong> ${node.connections.length}</p>
+            `;
+            
+            if (node.type === 'note') {
+                html += `
+                    <div style="margin: 15px 0;">
+                        <strong>📝 Full Content:</strong>
+                        <div class="content-box">${node.data.content}</div>
+                    </div>
+                    <p><strong>📂 Categories:</strong> ${node.data.categories.join(', ') || 'None'}</p>
+                    <p><strong>📊 Word Count:</strong> ${node.data.wordCount}</p>
+                `;
+                
+                if (node.data.metadata.url) {
+                    html += `<p><strong>🌐 Source:</strong> <a href="${node.data.metadata.url}" target="_blank" class="link">${node.data.metadata.title || 'Open Link'}</a></p>`;
+                }
+                
+                if (node.data.timestamp) {
+                    html += `<p><strong>📅 Created:</strong> ${new Date(node.data.timestamp).toLocaleString()}</p>`;
+                }
+                
+            } else if (node.type === 'category') {
+                html += `
+                    <div style="margin: 15px 0;">
+                        <strong>📖 Definition:</strong>
+                        <div class="content-box">${node.data.definition}</div>
+                    </div>
+                `;
+                
+            } else if (node.type === 'domain') {
+                html += `
+                    <p><strong>🌐 Domain:</strong> ${node.data.domain}</p>
+                    <p><strong>📝 Notes Count:</strong> ${node.data.noteCount || 1}</p>
+                `;
+                
+            } else if (node.type === 'url_context') {
+                html += `
+                    <p><strong>🔗 URL:</strong> <a href="${node.data.url}" target="_blank" class="link">${node.data.url}</a></p>
+                    <p><strong>📄 Title:</strong> ${node.data.title}</p>
+                    ${node.data.summary ? `<p><strong>📋 Summary:</strong> ${node.data.summary}</p>` : ''}
+                `;
+            }
+            
+            if (node.connections.length > 0) {
+                html += `
+                    <div class="connection-list">
+                        <strong>🔗 Connected To:</strong>
+                `;
+                
+                node.connections.slice(0, 8).forEach(conn => {
+                    const targetNode = allData.nodes.find(n => n.id === conn.target);
+                    if (targetNode) {
+                        html += `<div class="connection-item">
+                            ${typeEmojis[targetNode.type]} ${targetNode.name.substring(0, 60)}${targetNode.name.length > 60 ? '...' : ''}
+                        </div>`;
+                    }
+                });
+                
+                if (node.connections.length > 8) {
+                    html += `<p style="color: #9ca3af; font-size: 0.9em; margin-top: 10px;">... and ${node.connections.length - 8} more connections</p>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            html += `</div>`;
+            detailsEl.innerHTML = html;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            if (!query) {
+                currentData = { ...allData };
+                displayNodes();
+                updateStatistics();
+                setStatus('Search cleared - showing all items', 'info');
+                // Reset filter
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.filter-btn').classList.add('active');
+                return;
+            }
+            
+            const matchingNodes = allData.nodes.filter(node => {
+                return node.name.toLowerCase().includes(query) ||
+                       (node.data.content && node.data.content.toLowerCase().includes(query)) ||
+                       (node.data.categories && node.data.categories.some(cat => cat.toLowerCase().includes(query))) ||
+                       (node.data.domain && node.data.domain.toLowerCase().includes(query)) ||
+                       (node.data.definition && node.data.definition.toLowerCase().includes(query)) ||
+                       (node.data.title && node.data.title.toLowerCase().includes(query));
+            });
+            
+            currentData = { nodes: matchingNodes, connections: allData.connections };
+            displayNodes();
+            updateStatistics();
+            
+            if (matchingNodes.length > 0) {
+                setStatus(`🔍 Found ${matchingNodes.length} matches for "${query}"`, 'success');
+            } else {
+                setStatus(`❌ No matches found for "${query}"`, 'warning');
+            }
+        }
+
+        function updateStatistics() {
+            const stats = {
+                notes: currentData.nodes.filter(n => n.type === 'note').length,
+                categories: currentData.nodes.filter(n => n.type === 'category').length,
+                domains: currentData.nodes.filter(n => n.type === 'domain').length,
+                connections: currentData.connections || 0
+            };
+            
+            document.getElementById('notes-count').textContent = stats.notes;
+            document.getElementById('categories-count').textContent = stats.categories;
+            document.getElementById('domains-count').textContent = stats.domains;
+            document.getElementById('connections-count').textContent = stats.connections;
+        }
+
+        function clearAll() {
+            allData = { nodes: [], connections: 0 };
+            currentData = { nodes: [], connections: 0 };
+            selectedNode = null;
+            
+            document.getElementById('file-input').value = '';
+            document.getElementById('search-input').value = '';
+            document.getElementById('nodes-container').innerHTML = '<div class="no-data">Data cleared. Upload your JSON file or try demo data to start exploring.</div>';
+            document.getElementById('details-panel').innerHTML = '<p>Click on any knowledge item to see detailed information.</p>';
+            document.getElementById('filter-container').innerHTML = '';
+            
+            updateStatistics();
+            setStatus('🗑️ All data cleared', 'info');
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        console.log('✅ Knowledge Graph Explorer ready! Zero dependencies - guaranteed to work!');
+    </script>
+</body>
+</html>

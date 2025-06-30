@@ -19,9 +19,25 @@
         <a href="../categories/categories.html" class="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500">
           📂 Categories
         </a>
-        <button id="export-notes-button" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500">
-          📤 Export All
-        </button>
+        <a href="../visualization/index.html" class="py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+          🧠 Knowledge Graph
+        </a>
+        <div class="relative">
+          <button id="export-notes-button" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center">
+            📤 Export All <span class="ml-1">▼</span>
+          </button>
+          <div id="export-notes-dropdown" class="hidden absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10 min-w-full">
+            <button class="export-notes-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700 rounded-t-lg whitespace-nowrap" data-format="json">
+              📄 Complete JSON (Database backup)
+            </button>
+            <button class="export-notes-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700 whitespace-nowrap" data-format="markdown">
+              📝 Enhanced Markdown
+            </button>
+            <button class="export-notes-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700 rounded-b-lg whitespace-nowrap" data-format="csv">
+              📊 CSV Spreadsheet
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <div id="storage-info" class="mb-6 p-4 bg-gray-800 border border-gray-600 rounded-lg">

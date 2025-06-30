@@ -7,6 +7,20 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Sort state: 'newest' or 'oldest'
   let sortOrder = 'newest';
+  
+  // Notification function
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm max-w-sm`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Remove notification after 4 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 4000);
+  }
 
   // Chrome storage limits
   const STORAGE_LIMIT_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -414,8 +428,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  exportNotesButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'exportNotes' });
+  // Export dropdown functionality
+  const exportNotesDropdown = document.getElementById('export-notes-dropdown');
+  const exportNotesOptions = document.querySelectorAll('.export-notes-option');
+  
+  exportNotesButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    exportNotesDropdown.classList.toggle('hidden');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function() {
+    exportNotesDropdown.classList.add('hidden');
+  });
+  
+  // Handle export format selection
+  exportNotesOptions.forEach(option => {
+    option.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const format = this.getAttribute('data-format');
+      
+      // Show loading state
+      const originalText = this.innerHTML;
+      this.innerHTML = '⏳ Exporting...';
+      this.disabled = true;
+      
+      chrome.runtime.sendMessage({ 
+        action: 'exportNotes', 
+        format: format 
+      }, function(response) {
+        // Reset button state
+        option.innerHTML = originalText;
+        option.disabled = false;
+        exportNotesDropdown.classList.add('hidden');
+        
+        if (response && response.status === 'error') {
+          showNotification('Export failed: ' + response.message, 'error');
+        } else if (response && response.status === 'success') {
+          const formatNames = {
+            'json': 'Complete JSON Database',
+            'markdown': 'Enhanced Markdown',
+            'csv': 'CSV Spreadsheet'
+          };
+          
+          showNotification(`${formatNames[format]} exported successfully!`, 'success');
+          console.log('Export successful:', response);
+        }
+      });
+    });
   });
 
   // Sort button event listener

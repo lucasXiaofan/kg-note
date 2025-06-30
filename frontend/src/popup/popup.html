@@ -41,17 +41,44 @@
         💾 Save Note
       </button>
       <div class="grid grid-cols-2 gap-2">
-        <button 
-          id="export-button" 
-          class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-        >
-          📤 Export
-        </button>
+        <div class="relative">
+          <button 
+            id="export-button" 
+            class="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center justify-center"
+          >
+            📤 Export <span class="ml-1">▼</span>
+          </button>
+          <div id="export-dropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-10">
+            <button class="export-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700 rounded-t-lg" data-format="json">
+              📄 Complete JSON (Database backup)
+            </button>
+            <button class="export-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700" data-format="markdown">
+              📝 Enhanced Markdown
+            </button>
+            <button class="export-option w-full px-4 py-2 text-left text-gray-100 hover:bg-gray-700 rounded-b-lg" data-format="csv">
+              📊 CSV Spreadsheet
+            </button>
+          </div>
+        </div>
         <button 
           id="view-notes-button" 
           class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
         >
           📋 View
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <button 
+          id="graph-button" 
+          class="py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+        >
+          📊 Graph
+        </button>
+        <button 
+          id="categories-button" 
+          class="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        >
+          📂 Categories
         </button>
       </div>
     </div>

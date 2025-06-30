@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas Test</title>
+    <style>
+        canvas { border: 1px solid #ccc; background: #f0f0f0; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Canvas Visualization Test</h2>
+    <canvas id="test-canvas" width="400" height="300"></canvas>
+    <p>Status: <span id="status">Testing...</span></p>
+    
+    <script>
+        try {
+            const canvas = document.getElementById('test-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Test basic drawing
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(100, 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(200, 150, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(300, 100, 18, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw connecting lines
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.lineTo(200, 150);
+            ctx.moveTo(200, 150);
+            ctx.lineTo(300, 100);
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Note', 100, 140);
+            ctx.fillText('Category', 200, 190);
+            ctx.fillText('Domain', 300, 140);
+            
+            document.getElementById('status').textContent = 'Canvas working! ✅';
+            document.getElementById('status').style.color = 'green';
+            
+        } catch (error) {
+            console.error('Canvas test failed:', error);
+            document.getElementById('status').textContent = 'Canvas failed: ' + error.message;
+            document.getElementById('status').style.color = 'red';
+        }
+    </script>
+</body>
+</html>

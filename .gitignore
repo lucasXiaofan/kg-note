@@ -62,3 +62,6 @@ Thumbs.db
 
 # Root level virtual environment (should be in backend/)
 /.venv/
+
+# Google Cloud Credentials
+.secrets/

@@ -1,3 +1,73 @@
+// Helper functions for export functionality
+function extractDomain(url) {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch (e) {
+    return '';
+  }
+}
+
+function generateRelationships(notes) {
+  const relationships = [];
+  
+  // Group notes by domain
+  const domainGroups = {};
+  notes.forEach(note => {
+    const domain = note.metadata?.domain || extractDomain(note.metadata?.url || note.url || '');
+    if (domain) {
+      if (!domainGroups[domain]) domainGroups[domain] = [];
+      domainGroups[domain].push(note.id);
+    }
+  });
+  
+  // Group notes by category
+  const categoryGroups = {};
+  notes.forEach(note => {
+    if (note.categories) {
+      note.categories.forEach(category => {
+        if (!categoryGroups[category]) categoryGroups[category] = [];
+        categoryGroups[category].push(note.id);
+      });
+    }
+  });
+  
+  // Generate domain relationships
+  Object.values(domainGroups).forEach(noteIds => {
+    if (noteIds.length > 1) {
+      for (let i = 0; i < noteIds.length - 1; i++) {
+        for (let j = i + 1; j < noteIds.length; j++) {
+          relationships.push({
+            from: noteIds[i],
+            to: noteIds[j],
+            type: 'same_domain',
+            strength: 0.7
+          });
+        }
+      }
+    }
+  });
+  
+  // Generate category relationships
+  Object.values(categoryGroups).forEach(noteIds => {
+    if (noteIds.length > 1) {
+      for (let i = 0; i < noteIds.length - 1; i++) {
+        for (let j = i + 1; j < noteIds.length; j++) {
+          relationships.push({
+            from: noteIds[i],
+            to: noteIds[j],
+            type: 'same_category',
+            strength: 0.8
+          });
+        }
+      }
+    }
+  });
+  
+  return relationships;
+}
+
 // Function to categorize a note using the API
 async function categorizeNote(content, url) {
   try {
@@ -83,25 +153,171 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   } else if (request.action === 'exportNotes') {
-    chrome.storage.local.get({ notes: [] }, function(result) {
-      const notes = result.notes;
-      console.log('Export notes:', notes.length);
+    const exportFormat = request.format || 'json'; // Default to JSON for comprehensive export
+    
+    chrome.storage.local.get(null, function(result) {
+      const notes = result.notes || [];
+      const categories = result.categories || [];
+      
+      console.log('Export notes:', notes.length, 'categories:', categories.length, 'format:', exportFormat);
+      
       if (notes.length === 0) {
         console.log('No notes to export');
         sendResponse({ status: 'error', message: 'No notes to export' });
         return;
       }
-      let fullContent = '';
-      notes.forEach(note => {
-        fullContent += note.content + '\n\n---\n\n';
-      });
 
       try {
-        const dataUrl = 'data:text/markdown;charset=utf-8,' + encodeURIComponent(fullContent);
+        let exportData, filename, mimeType;
+        
+        if (exportFormat === 'json') {
+          // Comprehensive JSON export for full database restoration
+          exportData = {
+            metadata: {
+              exportDate: new Date().toISOString(),
+              version: "2.0.0",
+              totalNotes: notes.length,
+              totalCategories: categories.length,
+              source: "Knowledge Weaver Chrome Extension"
+            },
+            categories: categories,
+            notes: notes.map(note => ({
+              // Core note data
+              id: note.id,
+              content: note.content,
+              timestamp: note.timestamp,
+              
+              // Category information
+              categories: note.categories || [],
+              
+              // Webpage context (enhanced)
+              metadata: {
+                title: note.metadata?.title || '',
+                url: note.metadata?.url || note.url || '',
+                domain: note.metadata?.domain || extractDomain(note.metadata?.url || note.url || ''),
+                summary: note.metadata?.summary || ''
+              },
+              
+              // Additional context for KG building
+              context: {
+                pageTitle: note.metadata?.title || '',
+                sourceUrl: note.metadata?.url || note.url || '',
+                websiteDomain: note.metadata?.domain || extractDomain(note.metadata?.url || note.url || ''),
+                captureDate: note.timestamp ? new Date(note.timestamp).toISOString() : null,
+                contentLength: note.content?.length || 0,
+                wordCount: note.content ? note.content.split(/\s+/).length : 0
+              }
+            })),
+            
+            // Knowledge graph preparation data
+            knowledgeGraph: {
+              domains: [...new Set(notes.map(note => 
+                note.metadata?.domain || extractDomain(note.metadata?.url || note.url || '')
+              ).filter(Boolean))],
+              
+              urls: [...new Set(notes.map(note => 
+                note.metadata?.url || note.url || ''
+              ).filter(Boolean))],
+              
+              categoryUsage: categories.map(cat => ({
+                category: cat.category,
+                definition: cat.definition,
+                noteCount: notes.filter(note => 
+                  note.categories && note.categories.includes(cat.category)
+                ).length
+              })),
+              
+              relationships: generateRelationships(notes)
+            }
+          };
+          
+          filename = `knowledge-weaver-complete-${new Date().toISOString().split('T')[0]}.json`;
+          mimeType = 'application/json';
+          
+        } else if (exportFormat === 'markdown') {
+          // Enhanced markdown export with full metadata
+          let fullContent = `# Knowledge Weaver Export\n\n`;
+          fullContent += `**Export Date:** ${new Date().toISOString()}\n`;
+          fullContent += `**Total Notes:** ${notes.length}\n`;
+          fullContent += `**Total Categories:** ${categories.length}\n\n`;
+          
+          // Export categories first
+          if (categories.length > 0) {
+            fullContent += `## Categories\n\n`;
+            categories.forEach(category => {
+              fullContent += `### ${category.category}\n`;
+              fullContent += `${category.definition}\n\n`;
+            });
+            fullContent += `---\n\n`;
+          }
+          
+          // Export notes with full metadata
+          fullContent += `## Notes\n\n`;
+          notes.forEach((note, index) => {
+            fullContent += `### Note ${index + 1}\n\n`;
+            
+            // Metadata section
+            fullContent += `**Created:** ${note.timestamp ? new Date(note.timestamp).toISOString() : 'Unknown'}\n`;
+            fullContent += `**Categories:** ${note.categories ? note.categories.join(', ') : 'None'}\n`;
+            
+            if (note.metadata?.title) {
+              fullContent += `**Page Title:** ${note.metadata.title}\n`;
+            }
+            if (note.metadata?.url || note.url) {
+              fullContent += `**Source URL:** ${note.metadata?.url || note.url}\n`;
+            }
+            if (note.metadata?.domain) {
+              fullContent += `**Domain:** ${note.metadata.domain}\n`;
+            }
+            if (note.metadata?.summary) {
+              fullContent += `**Page Summary:** ${note.metadata.summary}\n`;
+            }
+            
+            fullContent += `\n**Content:**\n${note.content}\n\n---\n\n`;
+          });
+          
+          exportData = fullContent;
+          filename = `knowledge-weaver-notes-${new Date().toISOString().split('T')[0]}.md`;
+          mimeType = 'text/markdown';
+          
+        } else if (exportFormat === 'csv') {
+          // CSV export for spreadsheet analysis
+          const csvRows = [];
+          csvRows.push([
+            'ID', 'Content', 'Timestamp', 'Created Date', 'Categories', 
+            'Page Title', 'URL', 'Domain', 'Summary', 'Word Count'
+          ]);
+          
+          notes.forEach(note => {
+            csvRows.push([
+              note.id || '',
+              note.content ? note.content.replace(/"/g, '""') : '',
+              note.timestamp || '',
+              note.timestamp ? new Date(note.timestamp).toISOString() : '',
+              note.categories ? note.categories.join('; ') : '',
+              note.metadata?.title || '',
+              note.metadata?.url || note.url || '',
+              note.metadata?.domain || extractDomain(note.metadata?.url || note.url || ''),
+              note.metadata?.summary || '',
+              note.content ? note.content.split(/\s+/).length : 0
+            ]);
+          });
+          
+          exportData = csvRows.map(row => 
+            row.map(cell => `"${cell}"`).join(',')
+          ).join('\n');
+          
+          filename = `knowledge-weaver-notes-${new Date().toISOString().split('T')[0]}.csv`;
+          mimeType = 'text/csv';
+        }
+        
+        const dataUrl = `data:${mimeType};charset=utf-8,` + encodeURIComponent(
+          typeof exportData === 'object' ? JSON.stringify(exportData, null, 2) : exportData
+        );
         
         chrome.downloads.download({
           url: dataUrl,
-          filename: 'knowledge-weaver-notes.md',
+          filename: filename,
           saveAs: true
         }, (downloadId) => {
           if (chrome.runtime.lastError) {
@@ -109,9 +325,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse({ status: 'error', message: chrome.runtime.lastError.message });
           } else {
             console.log('Download started with ID:', downloadId);
-            sendResponse({ status: 'success' });
+            sendResponse({ status: 'success', filename: filename });
           }
         });
+        
       } catch (e) {
         console.error('Error during export:', e);
         sendResponse({ status: 'error', message: e.message });

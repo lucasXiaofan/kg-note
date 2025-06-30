@@ -17,12 +17,23 @@ Knowledge Weaver is a Chrome extension for personal knowledge management that ca
 - **Run API server**: `cd backend && pdm run python src/api/api.py` (serves on http://localhost:8000)
 - **Access API docs**: Visit http://localhost:8000/docs for interactive Swagger UI
 
+### Cloud Deployment
+- **Build Docker image**: `cd backend && docker build -t kg-api .`
+- **Deploy to Google Cloud Run**: See `docs/deployment-guide.md` for complete instructions
+- **Firestore setup**: `gcloud firestore databases create --location=us-central1`
+
 ### Setup Requirements
 1. Install pdm: `pip install pdm`
 2. Create `.env` file in backend directory with `DEEPSEEK_API_KEY=your_api_key`
 3. For Chrome extension: Load unpacked extension from frontend directory
 
 ## Architecture
+
+### Knowledge Graph Integration
+- **Schema**: Entities (notes, URLs, categories, concepts, domains) with relationships
+- **Storage**: Google Firestore with optimized indexes for graph queries
+- **AI Integration**: DeepSeek API for concept extraction and relationship building
+- **Query Patterns**: Related note discovery, semantic search, knowledge clustering
 
 ### Chrome Extension Structure (frontend/)
 - **src/popup/**: Main extension interface (popup.html/js)
@@ -55,12 +66,20 @@ Knowledge Weaver is a Chrome extension for personal knowledge management that ca
 - **Related Notes Discovery**: Visual indicators for notes from same page/domain
 
 ### API Endpoints
+
+#### Core Endpoints
 - `GET /health` - Server health check
 - `GET /categories` - Retrieve all categories
 - `POST /categories` - Add new category
 - `PUT /categories/{index}` - Update category
 - `DELETE /categories/{index}` - Delete category
 - `POST /categorize` - AI categorize note content
+
+#### Knowledge Graph Endpoints
+- `POST /kg/notes` - Add note to knowledge graph
+- `GET /kg/notes/{note_id}/related` - Get related notes
+- `POST /kg/search` - Search knowledge graph entities
+- `GET /kg/overview` - Get knowledge graph overview
 
 ## Development Notes
 

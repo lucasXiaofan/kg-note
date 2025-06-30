@@ -61,18 +61,83 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  exportButton.addEventListener('click', function() {
-    chrome.runtime.sendMessage({ action: 'exportNotes' }, function(response) {
-      if (response && response.status === 'error') {
-        alert('Export failed: ' + response.message);
-      } else if (response && response.status === 'success') {
-        console.log('Export successful');
-      }
+  // Export dropdown functionality
+  const exportDropdown = document.getElementById('export-dropdown');
+  const exportOptions = document.querySelectorAll('.export-option');
+  
+  exportButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    exportDropdown.classList.toggle('hidden');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function() {
+    exportDropdown.classList.add('hidden');
+  });
+  
+  // Handle export format selection
+  exportOptions.forEach(option => {
+    option.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const format = this.getAttribute('data-format');
+      
+      // Show loading state
+      const originalText = this.innerHTML;
+      this.innerHTML = '⏳ Exporting...';
+      this.disabled = true;
+      
+      chrome.runtime.sendMessage({ 
+        action: 'exportNotes', 
+        format: format 
+      }, function(response) {
+        // Reset button state
+        option.innerHTML = originalText;
+        option.disabled = false;
+        exportDropdown.classList.add('hidden');
+        
+        if (response && response.status === 'error') {
+          alert('Export failed: ' + response.message);
+        } else if (response && response.status === 'success') {
+          // Show success message with filename
+          const formatNames = {
+            'json': 'Complete JSON Database',
+            'markdown': 'Enhanced Markdown',
+            'csv': 'CSV Spreadsheet'
+          };
+          
+          const message = `✅ ${formatNames[format]} export successful!${response.filename ? '\nFile: ' + response.filename : ''}`;
+          
+          // Create and show success notification
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+          notification.textContent = `${formatNames[format]} exported successfully!`;
+          document.body.appendChild(notification);
+          
+          // Remove notification after 3 seconds
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+          
+          console.log('Export successful:', response);
+        }
+      });
     });
   });
 
   viewNotesButton.addEventListener('click', function() {
     chrome.tabs.create({ url: 'src/pages/notes/notes.html' });
+  });
+
+  // New navigation buttons
+  const graphButton = document.getElementById('graph-button');
+  const categoriesButton = document.getElementById('categories-button');
+
+  graphButton.addEventListener('click', function() {
+    chrome.tabs.create({ url: 'src/pages/visualization/index.html' });
+  });
+
+  categoriesButton.addEventListener('click', function() {
+    chrome.tabs.create({ url: 'src/pages/categories/categories.html' });
   });
 
   // Toggle context visibility

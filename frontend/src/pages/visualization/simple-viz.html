@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph - Simple Visualization</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <style>
+        #graph-canvas {
+            border: 1px solid #374151;
+            border-radius: 8px;
+            background: #1f2937;
+            cursor: grab;
+        }
+        #graph-canvas:active {
+            cursor: grabbing;
+        }
+        .node-info {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-blue-400">Knowledge Graph Visualization</h1>
+            <div class="flex gap-2">
+                <a href="index.html" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                    📊 Choose Version
+                </a>
+                <a href="../notes/notes.html" class="py-2 px-4 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded-lg transition-colors">
+                    📋 Back to Notes
+                </a>
+            </div>
+        </div>
+
+        <!-- Simple Controls -->
+        <div class="mb-4 p-4 bg-gray-800 border border-gray-600 rounded-lg">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-4">
+                    <input type="file" id="file-input" accept=".json" class="text-sm">
+                    <button id="load-sample" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                        Load Sample Data
+                    </button>
+                    <button id="reset-view" class="py-2 px-4 bg-gray-600 hover:bg-gray-500 text-white rounded-lg">
+                        Reset View
+                    </button>
+                </div>
+                <div class="text-sm text-gray-400">
+                    Click and drag to move • Click nodes for details
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex gap-4">
+            <!-- Canvas Container -->
+            <div class="flex-1">
+                <canvas id="graph-canvas" width="800" height="600"></canvas>
+                
+                <!-- Stats -->
+                <div class="mt-4 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+                    <div class="flex justify-between text-sm">
+                        <span>Notes: <span class="text-blue-400" id="notes-count">0</span></span>
+                        <span>Categories: <span class="text-green-400" id="categories-count">0</span></span>
+                        <span>Domains: <span class="text-yellow-400" id="domains-count">0</span></span>
+                        <span>Links: <span class="text-purple-400" id="links-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="w-64">
+                <!-- Legend -->
+                <div class="mb-4 p-3 bg-gray-800 border border-gray-600 rounded-lg">
+                    <h3 class="font-semibold mb-2">Legend</h3>
+                    <div class="space-y-1 text-sm">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3b82f6;"></div>
+                            <span>Notes</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #10b981;"></div>
+                            <span>Categories</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f59e0b;"></div>
+                            <span>Domains</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Node Info -->
+                <div class="p-3 bg-gray-800 border border-gray-600 rounded-lg">
+                    <h3 class="font-semibold mb-2">Node Details</h3>
+                    <div id="node-details" class="text-sm text-gray-300 node-info">
+                        Click on a node to see details
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="simple-viz.js"></script>
+</body>
+</html>

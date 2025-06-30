@@ -6,14 +6,30 @@ import json
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List, Optional
+import logging
+from datetime import datetime
+from services.knowledge_graph import KnowledgeGraphService
 
 load_dotenv()
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="Knowledge Weaver API",
-    description="API for categorizing notes and managing categories",
-    version="1.0.0"
+    description="API for categorizing notes and managing categories with knowledge graph",
+    version="2.0.0"
 )
+
+# Initialize Knowledge Graph Service
+try:
+    kg_service = KnowledgeGraphService()
+    logger.info("Knowledge Graph Service initialized")
+except Exception as e:
+    logger.error(f"Failed to initialize Knowledge Graph Service: {e}")
+    kg_service = None
 
 # Add CORS middleware for browser requests
 app.add_middleware(
@@ -38,6 +54,18 @@ class Note(BaseModel):
     content: str
     url: str = ""  # Backward compatibility
     metadata: WebpageMetadata = None  # New structured metadata
+    timestamp: Optional[int] = None
+    categories: Optional[List[str]] = None
+
+class KnowledgeGraphQuery(BaseModel):
+    query: str
+    entity_types: Optional[List[str]] = None
+    limit: int = 20
+
+class ImportData(BaseModel):
+    notes: List[dict]
+    categories: Optional[List[dict]] = None
+    metadata: Optional[dict] = None
 
 class Category(BaseModel):
     category: str
@@ -228,7 +256,216 @@ Please categorize this note considering both the content and the webpage context
         print(f"API call error: {e}")
         category_data = {"categories": ["General"], "definition": "API call failed"}
 
+    # Add note to knowledge graph if service is available
+    if kg_service:
+        try:
+            note_data = {
+                "content": note.content,
+                "timestamp": note.timestamp or int(time.time()),
+                "categories": category_data.get("categories", []),
+                "metadata": {
+                    "title": context_title,
+                    "url": context_url,
+                    "domain": context_domain,
+                    "summary": note.metadata.summary if note.metadata else ""
+                }
+            }
+            await kg_service.add_note_entity(note_data)
+            logger.info("Note added to knowledge graph")
+        except Exception as e:
+            logger.error(f"Failed to add note to knowledge graph: {e}")
+
     return category_data
 
+# Knowledge Graph Endpoints
+
+@app.post("/kg/notes")
+async def add_note_to_kg(note: Note):
+    """Add a note to the knowledge graph"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        import time
+        note_data = {
+            "content": note.content,
+            "timestamp": note.timestamp or int(time.time()),
+            "categories": note.categories or [],
+            "metadata": {
+                "title": note.metadata.title if note.metadata else "",
+                "url": note.metadata.url if note.metadata else note.url,
+                "domain": note.metadata.domain if note.metadata else "",
+                "summary": note.metadata.summary if note.metadata else ""
+            }
+        }
+        
+        note_id = await kg_service.add_note_entity(note_data)
+        return {"message": "Note added to knowledge graph", "note_id": note_id}
+        
+    except Exception as e:
+        logger.error(f"Failed to add note to knowledge graph: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/kg/notes/{note_id}/related")
+async def get_related_notes(note_id: str, limit: int = 10):
+    """Get notes related to a specific note"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        related_notes = await kg_service.find_related_notes(note_id, limit)
+        return {"related_notes": related_notes}
+        
+    except Exception as e:
+        logger.error(f"Failed to get related notes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/kg/search")
+async def search_knowledge_graph(query: KnowledgeGraphQuery):
+    """Search entities in the knowledge graph"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        results = await kg_service.search_entities(
+            query.query, 
+            query.entity_types, 
+            query.limit
+        )
+        return {"results": results}
+        
+    except Exception as e:
+        logger.error(f"Failed to search knowledge graph: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/kg/overview")
+async def get_knowledge_overview():
+    """Get overview of the knowledge graph"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        overview = await kg_service.get_knowledge_overview()
+        return overview
+        
+    except Exception as e:
+        logger.error(f"Failed to get knowledge overview: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/kg/import")
+async def import_knowledge_data(import_data: ImportData):
+    """Import notes and categories to rebuild knowledge graph"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        import time
+        imported_notes = 0
+        imported_categories = 0
+        errors = []
+        
+        # Import categories first
+        if import_data.categories:
+            existing_categories = read_categories()
+            existing_names = [cat["category"].lower() for cat in existing_categories]
+            
+            for category in import_data.categories:
+                if category.get("category", "").lower() not in existing_names:
+                    existing_categories.append(category)
+                    existing_names.append(category.get("category", "").lower())
+                    imported_categories += 1
+            
+            write_categories(existing_categories)
+        
+        # Import notes and build knowledge graph
+        if import_data.notes:
+            for note_data in import_data.notes:
+                try:
+                    # Ensure required fields
+                    if not note_data.get("content"):
+                        continue
+                    
+                    # Normalize note data structure
+                    normalized_note = {
+                        "content": note_data.get("content", ""),
+                        "timestamp": note_data.get("timestamp") or int(time.time()),
+                        "categories": note_data.get("categories", []),
+                        "metadata": note_data.get("metadata", {})
+                    }
+                    
+                    # Add to knowledge graph
+                    await kg_service.add_note_entity(normalized_note)
+                    imported_notes += 1
+                    
+                except Exception as e:
+                    errors.append(f"Failed to import note: {str(e)}")
+                    logger.error(f"Failed to import note: {e}")
+        
+        return {
+            "message": "Import completed",
+            "imported_notes": imported_notes,
+            "imported_categories": imported_categories,
+            "errors": errors,
+            "total_notes": len(import_data.notes) if import_data.notes else 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to import knowledge data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/kg/export")
+async def export_knowledge_graph():
+    """Export complete knowledge graph data"""
+    if not kg_service:
+        raise HTTPException(status_code=503, detail="Knowledge Graph service not available")
+    
+    try:
+        # Get all entities
+        entities_ref = kg_service.db.collection("kg_entities")
+        entities = entities_ref.stream()
+        
+        # Get all relationships
+        relationships_ref = kg_service.db.collection("kg_relationships")
+        relationships = relationships_ref.stream()
+        
+        # Organize data by type
+        export_data = {
+            "metadata": {
+                "export_date": datetime.now().isoformat(),
+                "version": "2.0.0",
+                "source": "Knowledge Graph API"
+            },
+            "entities": {},
+            "relationships": []
+        }
+        
+        # Group entities by type
+        for entity in entities:
+            entity_data = entity.to_dict()
+            entity_type = entity_data.get("type", "unknown")
+            
+            if entity_type not in export_data["entities"]:
+                export_data["entities"][entity_type] = []
+            
+            export_data["entities"][entity_type].append({
+                "id": entity.id,
+                **entity_data
+            })
+        
+        # Collect relationships
+        for relationship in relationships:
+            rel_data = relationship.to_dict()
+            export_data["relationships"].append({
+                "id": relationship.id,
+                **rel_data
+            })
+        
+        return export_data
+        
+    except Exception as e:
+        logger.error(f"Failed to export knowledge graph: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
+    import time
     uvicorn.run(app, host="0.0.0.0", port=8000)

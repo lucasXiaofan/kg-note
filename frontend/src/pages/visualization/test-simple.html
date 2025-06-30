@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>D3.js Test</title>
+    <script src="d3.v7.min.js"></script>
+</head>
+<body>
+    <h1>D3.js Test</h1>
+    <div id="test"></div>
+    <script>
+        // Simple test to verify D3.js loads
+        if (typeof d3 !== 'undefined') {
+            console.log('D3.js loaded successfully, version:', d3.version);
+            d3.select('#test').append('p').text('D3.js is working! Version: ' + d3.version);
+            
+            // Create a simple circle
+            const svg = d3.select('#test').append('svg').attr('width', 100).attr('height', 100);
+            svg.append('circle').attr('cx', 50).attr('cy', 50).attr('r', 20).style('fill', 'blue');
+        } else {
+            console.error('D3.js not loaded');
+            document.getElementById('test').innerHTML = '<p style="color: red;">D3.js failed to load</p>';
+        }
+    </script>
+</body>
+</html>

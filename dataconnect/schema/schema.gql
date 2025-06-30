@@ -1,0 +1,45 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type WebSource @table {
+  url: String!
+  title: String!
+  createdAt: Timestamp!
+  snippet: String
+  imageUrl: String
+  owner: User
+}
+
+type Note @table {
+  title: String!
+  content: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  isPrivate: Boolean!
+  summary: String
+  author: User
+  source: WebSource
+}
+
+type Tag @table {
+  name: String!
+  createdAt: Timestamp!
+  color: String
+}
+
+type NoteTag @table(key: ["note", "tag"]) {
+  note: Note!
+  tag: Tag!
+  createdAt: Timestamp!
+}
+
+type KnowledgeLink @table(key: ["sourceNote", "targetNote", "linkType"]) {
+  sourceNote: Note!
+  targetNote: Note!
+  linkType: String!
+  description: String
+}
